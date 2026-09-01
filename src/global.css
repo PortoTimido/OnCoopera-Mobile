@@ -1,0 +1,48 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+
+@import "nativewind/theme";
+
+@theme {
+  --font-sans: "PlusJakartaSans-Regular";
+  --font-sans-medium: "PlusJakartaSans-Medium";
+  --font-sans-semibold: "PlusJakartaSans-SemiBold";
+  --font-sans-bold: "PlusJakartaSans-Bold";
+  --font-display: "Fraunces-Bold";
+
+  --color-auth-canvas: #f5f3ee;
+  --color-auth-card: #ffffff;
+  --color-auth-field: #f5f3ee;
+  --color-auth-ink: #1b1c19;
+  --color-auth-muted: #6c7a75;
+  --color-auth-line: #eae8e3;
+  --color-auth-placeholder: #94a09a;
+
+  --color-brand-primary: #006b5a;
+  --color-brand-mint: #3ecfb2;
+  --color-brand-soft: #e0faf5;
+  --color-brand-soft-strong: #c9f4ea;
+
+  --color-feedback-danger: #c93131;
+  --color-feedback-danger-soft: #fdeceb;
+  --color-feedback-success: #107f61;
+  --color-feedback-success-soft: #e4f8ef;
+  --color-feedback-info: #2563eb;
+  --color-feedback-info-soft: #e8efff;
+  --color-feedback-warning: #9d5b00;
+  --color-feedback-warning-soft: #fff2d8;
+
+  --radius-card-auth: 48px;
+  --radius-pill: 999px;
+
+  --shadow-card-auth: 8px 10px 0 rgb(0 0 0 / 0.08);
+  --shadow-control: 0 10px 22px rgb(0 107 90 / 0.16);
+  --shadow-soft: 0 12px 32px rgb(24 31 28 / 0.08);
+
+  --container-auth: 430px;
+}
+
+@utility text-balance {
+  text-wrap: balance;
+}
