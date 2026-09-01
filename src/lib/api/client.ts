@@ -1,4 +1,11 @@
-const DEFAULT_API_URL = "http://localhost:3000/api";
+import Constants from "expo-constants";
+import { Platform } from "react-native";
+
+const LOCAL_API_PATH = "/api";
+const LOCAL_API_PORT = 3000;
+const WEB_DEFAULT_API_URL = `http://localhost:${LOCAL_API_PORT}${LOCAL_API_PATH}`;
+const NETWORK_ERROR_MESSAGE =
+  "Nao foi possivel conectar a API. Verifique se o backend esta rodando e se o celular esta na mesma rede do computador.";
 
 export type ApiErrorBody = {
   error?: string;
@@ -26,8 +33,37 @@ type ApiRequestOptions = Omit<RequestInit, "body" | "headers"> & {
   token?: string | null;
 };
 
+function extractLanHost(hostUri?: string | null) {
+  if (!hostUri) {
+    return undefined;
+  }
+
+  const hostWithOptionalPort = hostUri.replace(/^[a-zA-Z]+:\/\//, "").split("/")[0];
+  const host = hostWithOptionalPort.split(":")[0];
+
+  if (!host || host === "localhost" || host === "127.0.0.1") {
+    return undefined;
+  }
+
+  return host;
+}
+
+function getExpoHostUri() {
+  return Constants.expoConfig?.hostUri ?? Constants.linkingUri;
+}
+
+export function getLocalApiBaseUrlFromHostUri(hostUri?: string | null, platform = Platform.OS) {
+  if (platform === "web") {
+    return WEB_DEFAULT_API_URL;
+  }
+
+  const host = extractLanHost(hostUri);
+
+  return host ? `http://${host}:${LOCAL_API_PORT}${LOCAL_API_PATH}` : WEB_DEFAULT_API_URL;
+}
+
 export function getApiBaseUrl() {
-  return process.env.EXPO_PUBLIC_API_URL ?? DEFAULT_API_URL;
+  return process.env.EXPO_PUBLIC_API_URL ?? getLocalApiBaseUrlFromHostUri(getExpoHostUri());
 }
 
 export function buildApiUrl(path: string) {
@@ -35,6 +71,17 @@ export function buildApiUrl(path: string) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
   return `${baseUrl}${normalizedPath}`;
+}
+
+async function fetchApi(input: string, init: RequestInit) {
+  try {
+    return await fetch(input, init);
+  } catch (error) {
+    throw new ApiError(0, NETWORK_ERROR_MESSAGE, {
+      error: "NETWORK_ERROR",
+      message: error instanceof Error ? error.message : NETWORK_ERROR_MESSAGE,
+    });
+  }
 }
 
 function getErrorMessage(body: ApiErrorBody | undefined, fallback: string) {
@@ -76,7 +123,7 @@ export async function apiRequest<TResponse>(path: string, options: ApiRequestOpt
     headers.set("x-csrf-token", options.csrfToken);
   }
 
-  const response = await fetch(buildApiUrl(path), {
+  const response = await fetchApi(buildApiUrl(path), {
     ...options,
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
     credentials: "include",

@@ -1,5 +1,5 @@
 import { CalendarDays, Home, Mail, MapPin, Phone, UserRound } from "lucide-react-native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native-css/components";
 
 import { FormMessage } from "@/components/ui";
@@ -15,6 +15,7 @@ import {
 } from "@/features/auth/components";
 import { getSubmitErrorMessage } from "@/features/auth/screens/screen-helpers";
 import {
+  buildPatientLogin,
   hasFieldErrors,
   normalizeDigits,
   type FieldErrors,
@@ -22,7 +23,8 @@ import {
   validateRegister,
 } from "@/features/auth/validation";
 import { createPatient } from "@/lib/api/auth";
-import { geocodeAddress, GeocodingPendingError } from "@/lib/geocoding/geocode-address";
+import { getAddressByCep } from "@/lib/api/via-cep";
+import { getPendingGeocodingCoordinates } from "@/lib/geocoding/geocode-address";
 
 const initialValues: RegisterFormValues = {
   bairro: "",
@@ -33,7 +35,6 @@ const initialValues: RegisterFormValues = {
   dataNascimento: "",
   email: "",
   estado: "",
-  login: "",
   logradouro: "",
   nome: "",
   numero: "",
@@ -45,13 +46,86 @@ export function RegisterScreen() {
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState<FieldErrors<RegisterFormValues>>({});
   const [loading, setLoading] = useState(false);
+  const [cepLookupLoading, setCepLookupLoading] = useState(false);
+  const [cepLookupMessage, setCepLookupMessage] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   function updateField(field: keyof RegisterFormValues, value: string) {
-    setValues((current) => ({ ...current, [field]: field === "estado" ? value.toUpperCase() : value }));
+    const nextValue =
+      field === "estado" ? value.toUpperCase().slice(0, 2) : field === "cep" ? normalizeDigits(value).slice(0, 8) : value;
+
+    setValues((current) => ({ ...current, [field]: nextValue }));
     setErrors((current) => ({ ...current, [field]: undefined }));
   }
+
+  useEffect(() => {
+    const cep = normalizeDigits(values.cep);
+
+    if (cep.length !== 8) {
+      setCepLookupLoading(false);
+      setCepLookupMessage(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    let ignore = false;
+    const timeout = setTimeout(async () => {
+      setCepLookupLoading(true);
+      setCepLookupMessage(null);
+
+      try {
+        const address = await getAddressByCep(cep, { signal: controller.signal });
+
+        if (ignore) {
+          return;
+        }
+
+        setValues((current) => {
+          if (normalizeDigits(current.cep) !== cep) {
+            return current;
+          }
+
+          return {
+            ...current,
+            bairro: address.bairro || current.bairro,
+            cidade: address.localidade || current.cidade,
+            complemento: current.complemento || address.complemento || "",
+            estado: address.uf || current.estado,
+            logradouro: address.logradouro || current.logradouro,
+          };
+        });
+        setErrors((current) => ({
+          ...current,
+          bairro: undefined,
+          cep: undefined,
+          cidade: undefined,
+          estado: undefined,
+          logradouro: undefined,
+        }));
+        setCepLookupMessage("Endereco preenchido automaticamente pelo ViaCEP.");
+      } catch (error) {
+        if (ignore || (error instanceof Error && error.name === "AbortError")) {
+          return;
+        }
+
+        setErrors((current) => ({
+          ...current,
+          cep: getSubmitErrorMessage(error, "Nao foi possivel buscar o CEP."),
+        }));
+      } finally {
+        if (!ignore) {
+          setCepLookupLoading(false);
+        }
+      }
+    }, 450);
+
+    return () => {
+      ignore = true;
+      controller.abort();
+      clearTimeout(timeout);
+    };
+  }, [values.cep]);
 
   async function handleSubmit() {
     const nextErrors = validateRegister(values);
@@ -66,14 +140,7 @@ export function RegisterScreen() {
     setLoading(true);
 
     try {
-      const coordinates = await geocodeAddress({
-        bairro: values.bairro.trim(),
-        cep: normalizeDigits(values.cep),
-        cidade: values.cidade.trim(),
-        estado: values.estado.trim(),
-        logradouro: values.logradouro.trim(),
-        numero: values.numero.trim(),
-      });
+      const coordinates = getPendingGeocodingCoordinates();
 
       await createPatient({
         dataNascimento: values.dataNascimento.trim(),
@@ -89,7 +156,7 @@ export function RegisterScreen() {
           longitude: coordinates.longitude,
           numero: values.numero.trim(),
         },
-        login: values.login.trim(),
+        login: buildPatientLogin(values.nome),
         nome: values.nome.trim(),
         senha: values.senha,
         telefone: normalizeDigits(values.telefone),
@@ -97,11 +164,6 @@ export function RegisterScreen() {
 
       setSuccess("Cadastro enviado com sucesso. Agora voce ja pode entrar.");
     } catch (error) {
-      if (error instanceof GeocodingPendingError) {
-        setMessage("Cadastro validado, mas a geocodificacao Google ainda precisa ser configurada. Nenhum dado foi enviado.");
-        return;
-      }
-
       setMessage(getSubmitErrorMessage(error, "Nao foi possivel concluir o cadastro."));
     } finally {
       setLoading(false);
@@ -134,15 +196,6 @@ export function RegisterScreen() {
           onChangeText={(value) => updateField("email", value)}
           placeholder="seu@email.com"
           value={values.email}
-        />
-
-        <AuthTextField
-          error={errors.login}
-          icon={UserRound}
-          label="Login"
-          onChangeText={(value) => updateField("login", value)}
-          placeholder="nome.usuario"
-          value={values.login}
         />
 
         <View className="gap-4 sm:flex-row">
@@ -190,6 +243,12 @@ export function RegisterScreen() {
           icon={MapPin}
           keyboardType="number-pad"
           label="CEP"
+          helperText={
+            cepLookupLoading
+              ? "Buscando endereco pelo ViaCEP..."
+              : cepLookupMessage ?? "Digite 8 digitos para preencher o endereco."
+          }
+          maxLength={8}
           onChangeText={(value) => updateField("cep", value)}
           placeholder="00000000"
           value={values.cep}

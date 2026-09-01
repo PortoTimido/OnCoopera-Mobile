@@ -11,7 +11,12 @@ function mockResponse(status: number, body?: unknown) {
 
 describe("auth api", () => {
   beforeEach(() => {
+    process.env.EXPO_PUBLIC_API_URL = "http://localhost:3000/api";
     globalThis.fetch = jest.fn();
+  });
+
+  afterEach(() => {
+    delete process.env.EXPO_PUBLIC_API_URL;
   });
 
   it("posts login credentials and returns the authenticated session", async () => {

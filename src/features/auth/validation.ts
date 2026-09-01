@@ -1,5 +1,5 @@
 export type PasswordRule = {
-  id: "length" | "lowercase" | "uppercase" | "number" | "symbol";
+  id: "length";
   label: string;
   valid: boolean;
 };
@@ -18,7 +18,6 @@ export type RegisterFormValues = {
   dataNascimento: string;
   email: string;
   estado: string;
-  login: string;
   logradouro: string;
   nome: string;
   numero: string;
@@ -42,26 +41,6 @@ export type FieldErrors<TValues> = Partial<Record<keyof TValues, string>>;
 
 const REQUIRED_MESSAGE = "Campo obrigatorio.";
 
-function utf8ByteLength(value: string) {
-  return Array.from(value).reduce((total, char) => {
-    const codePoint = char.codePointAt(0) ?? 0;
-
-    if (codePoint <= 0x7f) {
-      return total + 1;
-    }
-
-    if (codePoint <= 0x7ff) {
-      return total + 2;
-    }
-
-    if (codePoint <= 0xffff) {
-      return total + 3;
-    }
-
-    return total + 4;
-  }, 0);
-}
-
 export function normalizeDigits(value: string) {
   return value.replace(/\D/g, "");
 }
@@ -75,14 +54,8 @@ export function isValidEmail(value: string) {
 }
 
 export function passwordRules(password: string): PasswordRule[] {
-  const byteLength = utf8ByteLength(password);
-
   return [
-    { id: "length", label: "12 a 72 caracteres", valid: byteLength >= 12 && byteLength <= 72 },
-    { id: "lowercase", label: "Uma letra minuscula", valid: /[a-z]/.test(password) },
-    { id: "uppercase", label: "Uma letra maiuscula", valid: /[A-Z]/.test(password) },
-    { id: "number", label: "Um numero", valid: /\d/.test(password) },
-    { id: "symbol", label: "Um simbolo", valid: /[^A-Za-z0-9]/.test(password) },
+    { id: "length", label: "Minimo 6 caracteres", valid: password.length >= 6 },
   ];
 }
 
@@ -122,7 +95,7 @@ export function validateResetPassword(values: ResetPasswordFormValues) {
   if (!values.novaSenha) {
     errors.novaSenha = REQUIRED_MESSAGE;
   } else if (!isPasswordPolicyValid(values.novaSenha)) {
-    errors.novaSenha = "A senha ainda nao atende a politica de seguranca.";
+    errors.novaSenha = "A senha deve ter no minimo 6 caracteres.";
   }
 
   if (!values.confirmarSenha) {
@@ -160,7 +133,6 @@ export function validateRegister(values: RegisterFormValues) {
     "dataNascimento",
     "email",
     "estado",
-    "login",
     "logradouro",
     "nome",
     "numero",
@@ -176,6 +148,10 @@ export function validateRegister(values: RegisterFormValues) {
 
   if (values.email.trim() && !isValidEmail(values.email)) {
     errors.email = "Informe um e-mail valido.";
+  }
+
+  if (values.nome.trim() && getNameParts(values.nome).length < 2) {
+    errors.nome = "Informe nome e sobrenome para gerar o login.";
   }
 
   if (values.cep.trim() && normalizeDigits(values.cep).length !== 8) {
@@ -200,4 +176,24 @@ export function validateRegister(values: RegisterFormValues) {
   }
 
   return errors;
+}
+
+function getNameParts(name: string) {
+  return name.trim().split(/\s+/).filter(Boolean);
+}
+
+function normalizeLoginToken(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+export function buildPatientLogin(name: string) {
+  const parts = getNameParts(name);
+  const firstName = parts[0] ?? "";
+  const lastName = parts.length > 1 ? parts[parts.length - 1] : "";
+
+  return [firstName, lastName].map(normalizeLoginToken).filter(Boolean).join(".");
 }
