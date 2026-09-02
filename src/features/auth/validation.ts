@@ -1,5 +1,5 @@
 export type PasswordRule = {
-  id: "length";
+  id: "length" | "uppercase" | "lowercase" | "number" | "symbol";
   label: string;
   valid: boolean;
 };
@@ -40,6 +40,8 @@ export type ResetPasswordFormValues = {
 export type FieldErrors<TValues> = Partial<Record<keyof TValues, string>>;
 
 const REQUIRED_MESSAGE = "Campo obrigatorio.";
+const PASSWORD_POLICY_MESSAGE =
+  "A senha deve ter no minimo 6 caracteres, uma letra maiuscula, uma minuscula, um numero e um simbolo.";
 
 export function normalizeDigits(value: string) {
   return value.replace(/\D/g, "");
@@ -56,6 +58,10 @@ export function isValidEmail(value: string) {
 export function passwordRules(password: string): PasswordRule[] {
   return [
     { id: "length", label: "Minimo 6 caracteres", valid: password.length >= 6 },
+    { id: "uppercase", label: "Uma letra maiuscula", valid: /[A-Z]/.test(password) },
+    { id: "lowercase", label: "Uma letra minuscula", valid: /[a-z]/.test(password) },
+    { id: "number", label: "Um numero", valid: /\d/.test(password) },
+    { id: "symbol", label: "Um simbolo", valid: /[^A-Za-z0-9\s]/.test(password) },
   ];
 }
 
@@ -95,7 +101,7 @@ export function validateResetPassword(values: ResetPasswordFormValues) {
   if (!values.novaSenha) {
     errors.novaSenha = REQUIRED_MESSAGE;
   } else if (!isPasswordPolicyValid(values.novaSenha)) {
-    errors.novaSenha = "A senha deve ter no minimo 6 caracteres.";
+    errors.novaSenha = PASSWORD_POLICY_MESSAGE;
   }
 
   if (!values.confirmarSenha) {

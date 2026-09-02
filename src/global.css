@@ -24,6 +24,31 @@
   --color-brand-soft: #e0faf5;
   --color-brand-soft-strong: #c9f4ea;
 
+  --color-home-canvas: #f5f3ee;
+  --color-home-surface: #fbf9f4;
+  --color-home-ink: #1b1c19;
+  --color-home-muted: #6c7a75;
+  --color-home-border: #e5e0d5;
+  --color-home-nav-text: #64748b;
+  --color-home-gold: #ffbf00;
+  --color-home-gold-border: #eadfbd;
+  --color-home-gold-soft: #fff5db;
+  --color-home-gold-ink: #7a5c00;
+  --color-home-blue: #3b82f6;
+  --color-home-blue-border: #d5dee9;
+  --color-home-blue-soft: #eaf3ff;
+  --color-home-blue-ink: #1e3a8a;
+  --color-home-lavender: #c6afee;
+  --color-home-lavender-border: #d8cce6;
+  --color-home-lavender-soft: #ece3f7;
+  --color-home-lavender-ink: #534077;
+  --color-home-appointment-border: #dbe8f6;
+  --color-home-purple: #6f5799;
+  --color-home-purple-soft: #d6b7ff;
+  --color-home-green: #007f69;
+  --color-home-green-strong: #006b5a;
+  --color-home-green-soft: #e8faf4;
+
   --color-feedback-danger: #c93131;
   --color-feedback-danger-soft: #fdeceb;
   --color-feedback-success: #107f61;
@@ -34,13 +59,19 @@
   --color-feedback-warning-soft: #fff2d8;
 
   --radius-card-auth: 48px;
+  --radius-home-card: 48px;
+  --radius-home-nav: 32px;
   --radius-pill: 999px;
 
   --shadow-card-auth: 8px 10px 0 rgb(0 0 0 / 0.08);
   --shadow-control: 0 10px 22px rgb(0 107 90 / 0.16);
+  --shadow-home-clay: 6px 6px 0 rgb(0 0 0 / 0.1);
+  --shadow-home-soft: 4px 4px 0 rgb(0 0 0 / 0.08);
+  --shadow-home-nav: 0 -8px 0 rgb(0 0 0 / 0.05);
   --shadow-soft: 0 12px 32px rgb(24 31 28 / 0.08);
 
   --container-auth: 430px;
+  --container-home: 430px;
 }
 
 @utility text-balance {

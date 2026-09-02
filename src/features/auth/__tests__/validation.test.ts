@@ -27,19 +27,56 @@ describe("auth validation", () => {
 
   it("enforces password policy rules", () => {
     expect(isPasswordPolicyValid("12345")).toBe(false);
-    expect(passwordRules("123456")).toEqual([
+    expect(isPasswordPolicyValid("senha1!")).toBe(false);
+    expect(isPasswordPolicyValid("SENHA1!")).toBe(false);
+    expect(isPasswordPolicyValid("Senha!!")).toBe(false);
+    expect(isPasswordPolicyValid("Senha12")).toBe(false);
+    expect(isPasswordPolicyValid("Se1!")).toBe(false);
+    expect(isPasswordPolicyValid("Senha1!")).toBe(true);
+    expect(passwordRules("Senha1!")).toEqual([
       {
         id: "length",
         label: "Minimo 6 caracteres",
         valid: true,
       },
+      {
+        id: "uppercase",
+        label: "Uma letra maiuscula",
+        valid: true,
+      },
+      {
+        id: "lowercase",
+        label: "Uma letra minuscula",
+        valid: true,
+      },
+      {
+        id: "number",
+        label: "Um numero",
+        valid: true,
+      },
+      {
+        id: "symbol",
+        label: "Um simbolo",
+        valid: true,
+      },
     ]);
+  });
+
+  it("uses the password policy message across reset validation", () => {
+    const errors = validateResetPassword({
+      confirmarSenha: "senha",
+      novaSenha: "senha",
+    });
+
+    expect(errors.novaSenha).toBe(
+      "A senha deve ter no minimo 6 caracteres, uma letra maiuscula, uma minuscula, um numero e um simbolo.",
+    );
   });
 
   it("requires matching reset passwords", () => {
     const errors = validateResetPassword({
-      confirmarSenha: "654321",
-      novaSenha: "123456",
+      confirmarSenha: "Senha2!",
+      novaSenha: "Senha1!",
     });
 
     expect(errors.confirmarSenha).toBe("As senhas nao conferem.");
@@ -47,9 +84,9 @@ describe("auth validation", () => {
 
   it("requires temporary password credentials", () => {
     const errors = validateTemporaryPassword({
-      confirmarSenha: "123456",
+      confirmarSenha: "Senha1!",
       identificador: "",
-      novaSenha: "123456",
+      novaSenha: "Senha1!",
       senhaTemporaria: "",
     });
 
@@ -63,14 +100,14 @@ describe("auth validation", () => {
       cep: "123",
       cidade: "",
       complemento: "",
-      confirmarSenha: "123456",
+      confirmarSenha: "Senha1!",
       dataNascimento: "",
       email: "invalido",
       estado: "SP",
       logradouro: "",
       nome: "",
       numero: "",
-      senha: "123456",
+      senha: "Senha1!",
       telefone: "",
     });
 
@@ -90,14 +127,14 @@ describe("auth validation", () => {
       cep: "01001000",
       cidade: "Sao Paulo",
       complemento: "",
-      confirmarSenha: "123456",
+      confirmarSenha: "Senha1!",
       dataNascimento: "1990-01-01",
       email: "paciente@oncoopera.com",
       estado: "SP",
       logradouro: "Praca da Se",
       nome: "Maria",
       numero: "1",
-      senha: "123456",
+      senha: "Senha1!",
       telefone: "11999999999",
     });
 

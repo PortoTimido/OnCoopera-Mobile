@@ -68,7 +68,7 @@ export function LoginScreen() {
       });
 
       await saveAuthSession(session, remember);
-      setSuccess(`Bem-vindo, ${session.usuario.nome}.`);
+      router.replace("/inicio");
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         router.push({
