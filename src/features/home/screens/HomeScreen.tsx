@@ -1,17 +1,22 @@
-import { ArrowRight, CalendarDays, Clock3, FileText, PenLine, Sun } from "lucide-react-native";
+import { ArrowRight, CalendarDays, Clock3, FileText, PenLine } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Pressable, ScrollView, Text, View } from "react-native-css/components";
 
 import { AppText } from "@/components/ui";
 import { HomeBottomNav, HomeShortcutCard, HomeTopBar } from "@/features/home/components";
 import { homeMock } from "@/features/home/home.mock";
+import { useHomeClock } from "@/features/home/hooks/use-home-clock";
+import { useHomeUser } from "@/features/home/hooks/use-home-user";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
 export function HomeScreen() {
+  const { dateTimeLabel, greeting } = useHomeClock();
+  const { displayName, initials } = useHomeUser();
+
   return (
     <SafeAreaView style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
       <View className="relative flex-1 bg-home-canvas" testID="home-screen">
-        <HomeTopBar dateLabel={homeMock.dateLabel} initials={homeMock.patient.initials} />
+        <HomeTopBar dateTimeLabel={dateTimeLabel} initials={initials} />
 
         <ScrollView
           className="flex-1 bg-home-canvas"
@@ -22,12 +27,14 @@ export function HomeScreen() {
           <View className="gap-1">
             <View className="flex-row items-center gap-2">
               <AppText className="text-[30px] leading-[36px] text-home-ink" variant="title">
-                Bom dia
+                {greeting.label}
               </AppText>
-              <Sun color={nativePropColors.homeGold} fill={nativePropColors.homeGold} size={24} strokeWidth={1.8} />
+              <Text accessibilityLabel={greeting.emoji} className="text-[24px] leading-[30px]">
+                {greeting.emoji}
+              </Text>
             </View>
             <AppText className="text-[30px] leading-[36px] text-brand-primary" variant="title">
-              {homeMock.patient.name}
+              {displayName}
             </AppText>
             <Text className="font-sans text-[14px] leading-[20px] text-home-muted">
               Como voce esta se sentindo neste momento?

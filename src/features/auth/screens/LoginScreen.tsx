@@ -32,15 +32,23 @@ const initialValues: LoginFormValues = {
 
 export function LoginScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ temporaryPasswordChanged?: string }>();
+  const params = useLocalSearchParams<{ passwordChanged?: string; temporaryPasswordChanged?: string }>();
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState<FieldErrors<LoginFormValues>>({});
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(
-    params.temporaryPasswordChanged ? "Senha definitiva criada. Entre com sua nova senha." : null,
-  );
+  const [success, setSuccess] = useState<string | null>(() => {
+    if (params.temporaryPasswordChanged) {
+      return "Senha definitiva criada. Entre com sua nova senha.";
+    }
+
+    if (params.passwordChanged) {
+      return "Senha alterada com sucesso. Entre com sua nova senha.";
+    }
+
+    return null;
+  });
 
   const disabledOAuthText = useMemo(() => "Google Sign-In pendente de contrato OAuth.", []);
 

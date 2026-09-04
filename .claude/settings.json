@@ -1,5 +1,10 @@
 {
   "enabledPlugins": {
     "expo@claude-plugins-official": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(node /private/tmp/claude-501/-Users-henriquegarciacarvalho-Documents-OnCoopera-OnCoopera-Mobile/0a6d29a2-1ee2-44dd-a89b-45dfdb184a01/scratchpad/verify-edit-name-2.mjs)"
+    ]
   }
 }

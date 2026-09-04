@@ -19,6 +19,14 @@ export function setMemorySession(session: AuthResponse | null) {
   memorySession = session;
 }
 
+export function updateMemorySessionUser(patch: Partial<AuthenticatedUser>) {
+  if (!memorySession) {
+    return;
+  }
+
+  memorySession = { ...memorySession, usuario: { ...memorySession.usuario, ...patch } };
+}
+
 export async function saveAuthSession(session: AuthResponse, remember: boolean) {
   setMemorySession(session);
 

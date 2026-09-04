@@ -1,15 +1,16 @@
-import { Plus } from "lucide-react-native";
+import { Link } from "expo-router";
+import { Settings } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native-css/components";
 
 import { AppText } from "@/components/ui";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
 type HomeTopBarProps = {
-  dateLabel: string;
+  dateTimeLabel: string;
   initials: string;
 };
 
-export function HomeTopBar({ dateLabel, initials }: HomeTopBarProps) {
+export function HomeTopBar({ dateTimeLabel, initials }: HomeTopBarProps) {
   return (
     <View className="h-[66px] flex-row items-center justify-between border-b border-home-border bg-home-surface px-4">
       <View className="flex-row items-center gap-3">
@@ -19,20 +20,24 @@ export function HomeTopBar({ dateLabel, initials }: HomeTopBarProps) {
 
         <View>
           <AppText className="text-[24px] leading-[30px] text-brand-primary" variant="title">
-            Inicio
+            {"In\u00edcio"}
           </AppText>
-          <Text className="font-sans text-[12px] leading-[16px] text-home-muted">{dateLabel}</Text>
+          <Text className="max-w-[235px] font-sans text-[12px] leading-[16px] text-home-muted" numberOfLines={1}>
+            {dateTimeLabel}
+          </Text>
         </View>
       </View>
 
-      <Pressable
-        accessibilityLabel="Adicionar"
-        accessibilityRole="button"
-        className="size-8 items-center justify-center rounded-pill bg-brand-mint"
-        hitSlop={8}
-      >
-        <Plus color={nativePropColors.brandPrimary} size={22} strokeWidth={2.2} />
-      </Pressable>
+      <Link asChild href="/configuracoes">
+        <Pressable
+          accessibilityLabel="Configuracoes"
+          accessibilityRole="button"
+          className="size-8 items-center justify-center rounded-pill"
+          hitSlop={8}
+        >
+          <Settings color={nativePropColors.homeNavText} size={19} strokeWidth={2.4} />
+        </Pressable>
+      </Link>
     </View>
   );
 }

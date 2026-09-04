@@ -5,11 +5,6 @@ export const homeMock = {
     label: "PROXIMA CONSULTA",
     time: "10:30",
   },
-  dateLabel: "QUARTA, 15 DE JULHO",
-  patient: {
-    initials: "PP",
-    name: "Maria Silva",
-  },
   prompt: {
     body: "Registrar seus sintomas ajuda sua equipe medica a cuidar melhor de voce.",
     cta: "Registrar agora",
