@@ -1,3 +1,4 @@
+import { Link, type Href } from "expo-router";
 import { BookOpen, ClipboardList, Sprout } from "lucide-react-native";
 import type { ComponentType } from "react";
 import { Pressable, View } from "react-native-css/components";
@@ -43,6 +44,10 @@ const shortcutToneColors: Record<HomeShortcut["tone"], string> = {
   lavender: nativePropColors.homeLavenderInk,
 };
 
+const shortcutHrefs: Partial<Record<HomeShortcut["id"], Href>> = {
+  articles: "/artigos",
+};
+
 type HomeShortcutCardProps = {
   shortcut: HomeShortcut;
 };
@@ -50,17 +55,19 @@ type HomeShortcutCardProps = {
 export function HomeShortcutCard({ shortcut }: HomeShortcutCardProps) {
   const Icon = shortcutIcons[shortcut.id];
   const tone = shortcutToneClasses[shortcut.tone];
+  const href = shortcutHrefs[shortcut.id];
+  const disabled = !href;
 
-  return (
+  const card = (
     <Pressable
       accessibilityLabel={shortcut.label}
       accessibilityRole="button"
-      accessibilityState={{ disabled: true }}
+      accessibilityState={{ disabled }}
       className={cn(
         "h-[142px] w-[47%] items-center justify-center gap-3 rounded-home-card border-2 shadow-home-clay",
         tone.card,
       )}
-      disabled
+      disabled={disabled}
       testID={`home-shortcut-${shortcut.id}`}
     >
       <View className={cn("size-14 items-center justify-center rounded-2xl shadow-home-soft", tone.icon)}>
@@ -70,5 +77,15 @@ export function HomeShortcutCard({ shortcut }: HomeShortcutCardProps) {
         {shortcut.label}
       </AppText>
     </Pressable>
+  );
+
+  if (!href) {
+    return card;
+  }
+
+  return (
+    <Link asChild href={href}>
+      {card}
+    </Link>
   );
 }

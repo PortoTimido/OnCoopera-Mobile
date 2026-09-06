@@ -35,5 +35,5 @@ export default function PrivateLayout() {
     return <Redirect href="/login" />;
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return <Stack screenOptions={{ animation: "fade", animationDuration: 220, headerShown: false }} />;
 }
