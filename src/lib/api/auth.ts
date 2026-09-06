@@ -55,6 +55,29 @@ export type CreatePatientRequest = {
   telefone: string;
 };
 
+export type PatientAddress = AddressRequest & {
+  id: string;
+};
+
+export type PatientDetails = {
+  endereco: PatientAddress | null;
+  usuario: AuthenticatedUser;
+};
+
+export type UpdatePatientRequest = Partial<{
+  dataNascimento: string;
+  email: string;
+  endereco: AddressRequest;
+  login: string;
+  nome: string;
+  telefone: string;
+}>;
+
+export type ChangePasswordRequest = {
+  novaSenha: string;
+  senhaAtual: string;
+};
+
 export function login(payload: LoginRequest) {
   return apiRequest<AuthResponse>("/auth/login", {
     body: payload,
@@ -94,5 +117,21 @@ export function createPatient(payload: CreatePatientRequest) {
   return apiRequest<AuthenticatedUser>("/mobile/pacientes", {
     body: payload,
     method: "POST",
+  });
+}
+
+export function updatePatientProfile(payload: UpdatePatientRequest, accessToken: string) {
+  return apiRequest<PatientDetails>("/mobile/pacientes/me", {
+    body: payload,
+    method: "PATCH",
+    token: accessToken,
+  });
+}
+
+export function changePassword(payload: ChangePasswordRequest, accessToken: string) {
+  return apiRequest<void>("/auth/change-password", {
+    body: payload,
+    method: "POST",
+    token: accessToken,
   });
 }
