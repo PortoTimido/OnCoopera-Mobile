@@ -20,7 +20,7 @@ const navItems: Array<{
 }> = [
   { href: "/inicio", icon: Home, id: "inicio", label: "Inicio" },
   { icon: ClipboardList, id: "diario", label: "Diario" },
-  { icon: Sprout, id: "suporte", label: "Suporte" },
+  { href: "/apoios", icon: Sprout, id: "suporte", label: "Suporte" },
   { href: "/artigos", icon: BookOpen, id: "artigo", label: "Artigo" },
 ];
 

@@ -46,6 +46,7 @@ const shortcutToneColors: Record<HomeShortcut["tone"], string> = {
 
 const shortcutHrefs: Partial<Record<HomeShortcut["id"], Href>> = {
   articles: "/artigos",
+  support: "/apoios",
 };
 
 type HomeShortcutCardProps = {

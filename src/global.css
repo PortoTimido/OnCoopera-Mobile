@@ -59,6 +59,19 @@
   --color-article-blue-ink: #1e3a8a;
   --color-article-badge-soft: rgb(255 255 255 / 0.55);
 
+  --color-radar-map: #dcebdc;
+  --color-radar-map-line: #f5efe1;
+  --color-radar-pin: #008575;
+  --color-radar-clinic: #ff927f;
+  --color-radar-ong: #eadfff;
+  --color-radar-transport: #ffe2dc;
+  --color-radar-psychologist: #d9eefb;
+  --color-radar-info: #f4f2ed;
+  --color-radar-info-border: #e1ded6;
+  --color-radar-chip: #f2f1ed;
+  --color-radar-chip-ink: #66756f;
+  --color-radar-sheet: #ffffff;
+
   --color-feedback-danger: #c93131;
   --color-feedback-danger-soft: #fdeceb;
   --color-feedback-success: #107f61;
@@ -71,6 +84,7 @@
   --radius-card-auth: 48px;
   --radius-home-card: 48px;
   --radius-home-nav: 32px;
+  --radius-radar-sheet: 44px;
   --radius-pill: 999px;
 
   --shadow-card-auth: 8px 10px 0 rgb(0 0 0 / 0.08);

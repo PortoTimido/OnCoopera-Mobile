@@ -128,6 +128,13 @@ export function updatePatientProfile(payload: UpdatePatientRequest, accessToken:
   });
 }
 
+export function getPatientProfile(accessToken: string) {
+  return apiRequest<PatientDetails>("/mobile/pacientes/me", {
+    method: "GET",
+    token: accessToken,
+  });
+}
+
 export function changePassword(payload: ChangePasswordRequest, accessToken: string) {
   return apiRequest<void>("/auth/change-password", {
     body: payload,
