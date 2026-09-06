@@ -76,6 +76,7 @@
   --shadow-card-auth: 8px 10px 0 rgb(0 0 0 / 0.08);
   --shadow-control: 0 10px 22px rgb(0 107 90 / 0.16);
   --shadow-home-clay: 6px 6px 0 rgb(0 0 0 / 0.1);
+  --shadow-modal: 0 12px 0 rgb(0 0 0 / 0.35);
   --shadow-home-soft: 4px 4px 0 rgb(0 0 0 / 0.08);
   --shadow-home-nav: 0 -8px 0 rgb(0 0 0 / 0.05);
   --shadow-soft: 0 12px 32px rgb(24 31 28 / 0.08);

@@ -54,7 +54,7 @@ describe("settings screen", () => {
 
     expect(screen.getByTestId("settings-screen")).toBeTruthy();
     expect(screen.getByText("OnCoopera")).toBeTruthy();
-    expect(screen.getByText("Configuracoes")).toBeTruthy();
+    expect(screen.getByText("Configurações")).toBeTruthy();
     expect(screen.getByText("Ana Costa")).toBeTruthy();
     expect(screen.getByText("ana@oncoopera.com")).toBeTruthy();
     expect(screen.getByText("Notificacoes")).toBeTruthy();

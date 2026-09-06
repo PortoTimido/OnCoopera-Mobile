@@ -41,7 +41,7 @@ export function SettingsScreen() {
         >
           <View className="gap-1">
             <AppText className="text-[30px] leading-[36px] text-home-ink" variant="title">
-              Configuracoes
+              Configurações
             </AppText>
             <AppText className="text-home-muted">Personalize sua experiencia no OnCoopera.</AppText>
           </View>

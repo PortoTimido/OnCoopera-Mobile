@@ -18,15 +18,16 @@ export function SettingsModal({ children, onClose, testID, title, visible }: Set
       <Pressable
         accessibilityLabel="Fechar"
         accessibilityRole="button"
-        className="flex-1 items-center justify-center bg-black/40 px-6"
+        className="flex-1 items-center justify-center px-6"
         onPress={onClose}
+        style={{ backgroundColor: "rgba(0, 0, 0, 0.85)" }}
         testID={testID ? `${testID}-backdrop` : undefined}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           className="w-full max-w-home"
         >
-          <Pressable className="gap-5 rounded-home-card bg-home-surface p-6 shadow-home-clay" onPress={() => undefined} testID={testID}>
+          <Pressable className="gap-5 rounded-home-card bg-home-surface p-6 shadow-modal" onPress={() => undefined} testID={testID}>
             <AppText className="text-[20px] leading-[26px] text-home-ink" variant="subtitle">
               {title}
             </AppText>
