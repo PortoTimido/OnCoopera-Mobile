@@ -108,10 +108,11 @@ async function parseJsonSafely(response: Response) {
 
 export async function apiRequest<TResponse>(path: string, options: ApiRequestOptions = {}) {
   const headers = new Headers(options.headers);
+  const isFormData = options.body instanceof FormData;
 
   headers.set("Accept", "application/json");
 
-  if (options.body !== undefined && !headers.has("Content-Type")) {
+  if (options.body !== undefined && !isFormData && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -125,7 +126,7 @@ export async function apiRequest<TResponse>(path: string, options: ApiRequestOpt
 
   const response = await fetchApi(buildApiUrl(path), {
     ...options,
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    body: options.body === undefined ? undefined : isFormData ? (options.body as FormData) : JSON.stringify(options.body),
     credentials: "include",
     headers,
   });

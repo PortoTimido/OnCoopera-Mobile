@@ -12,9 +12,11 @@
   "dependencies": {
     "@expo-google-fonts/fraunces": "^0.4.1",
     "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
+    "@react-native-community/slider": "5.2.0",
     "@tailwindcss/postcss": "^4.1.12",
     "clsx": "^2.1.1",
     "expo": "^57.0.0",
+    "expo-audio": "~57.0.4",
     "expo-constants": "~57.0.17",
     "expo-font": "~57.0.3",
     "expo-linear-gradient": "~57.0.1",

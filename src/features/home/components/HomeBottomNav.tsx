@@ -19,7 +19,7 @@ const navItems: Array<{
   label: string;
 }> = [
   { href: "/inicio", icon: Home, id: "inicio", label: "Inicio" },
-  { icon: ClipboardList, id: "diario", label: "Diario" },
+  { href: "/diario", icon: ClipboardList, id: "diario", label: "Diario" },
   { href: "/apoios", icon: Sprout, id: "suporte", label: "Suporte" },
   { href: "/artigos", icon: BookOpen, id: "artigo", label: "Artigo" },
 ];

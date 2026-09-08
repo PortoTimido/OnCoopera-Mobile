@@ -64,7 +64,7 @@ describe("home screen", () => {
       selected: true,
     });
     expect(screen.getByTestId("home-nav-diario").props.accessibilityState).toEqual({
-      disabled: true,
+      disabled: false,
       selected: undefined,
     });
   });

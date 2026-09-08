@@ -31,6 +31,12 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Permitir que o OnCoopera acesse o microfone para gravar notas de voz no diário de sintomas."
+        }
       ]
     ]
   }
