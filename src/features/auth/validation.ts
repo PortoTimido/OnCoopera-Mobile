@@ -25,6 +25,16 @@ export type RegisterFormValues = {
   telefone: string;
 };
 
+export type RegisterStepOneValues = Pick<
+  RegisterFormValues,
+  "confirmarSenha" | "dataNascimento" | "email" | "nome" | "senha" | "telefone"
+>;
+
+export type RegisterStepTwoValues = Pick<
+  RegisterFormValues,
+  "bairro" | "cep" | "cidade" | "complemento" | "estado" | "logradouro" | "numero"
+>;
+
 export type TemporaryPasswordFormValues = {
   confirmarSenha: string;
   identificador: string;
@@ -130,42 +140,33 @@ export function validateTemporaryPassword(values: TemporaryPasswordFormValues) {
   return errors;
 }
 
-export function validateRegister(values: RegisterFormValues) {
-  const errors: FieldErrors<RegisterFormValues> = {};
-  const requiredFields: Array<keyof RegisterFormValues> = [
-    "bairro",
-    "cep",
-    "cidade",
-    "dataNascimento",
-    "email",
-    "estado",
-    "logradouro",
-    "nome",
-    "numero",
-    "senha",
-    "telefone",
-  ];
+export function validateRegisterStepOne(values: RegisterStepOneValues) {
+  const errors: FieldErrors<RegisterStepOneValues> = {};
 
-  for (const field of requiredFields) {
-    if (!values[field].trim()) {
-      errors[field] = REQUIRED_MESSAGE;
-    }
-  }
-
-  if (values.email.trim() && !isValidEmail(values.email)) {
-    errors.email = "Informe um e-mail valido.";
-  }
-
-  if (values.nome.trim() && getNameParts(values.nome).length < 2) {
+  if (!values.nome.trim()) {
+    errors.nome = REQUIRED_MESSAGE;
+  } else if (getNameParts(values.nome).length < 2) {
     errors.nome = "Informe nome e sobrenome para gerar o login.";
   }
 
-  if (values.cep.trim() && normalizeDigits(values.cep).length !== 8) {
-    errors.cep = "Informe um CEP com 8 digitos.";
+  const emailError = validateEmailRequest(values.email);
+
+  if (emailError) {
+    errors.email = emailError;
   }
 
-  if (values.estado.trim() && values.estado.trim().length !== 2) {
-    errors.estado = "Use a sigla do estado com 2 letras.";
+  if (!values.telefone.trim()) {
+    errors.telefone = REQUIRED_MESSAGE;
+  } else if (![10, 11].includes(normalizeDigits(values.telefone).length)) {
+    errors.telefone = "Informe um telefone valido com DDD.";
+  }
+
+  if (!values.dataNascimento.trim()) {
+    errors.dataNascimento = REQUIRED_MESSAGE;
+  } else if (Number.isNaN(new Date(values.dataNascimento).getTime())) {
+    errors.dataNascimento = "Informe uma data de nascimento valida.";
+  } else if (new Date(values.dataNascimento).getTime() > Date.now()) {
+    errors.dataNascimento = "A data de nascimento nao pode ser no futuro.";
   }
 
   const passwordErrors = validateResetPassword({
@@ -182,6 +183,41 @@ export function validateRegister(values: RegisterFormValues) {
   }
 
   return errors;
+}
+
+export function validateRegisterStepTwo(values: RegisterStepTwoValues) {
+  const errors: FieldErrors<RegisterStepTwoValues> = {};
+  const requiredFields: Array<keyof RegisterStepTwoValues> = [
+    "cep",
+    "estado",
+    "cidade",
+    "bairro",
+    "logradouro",
+    "numero",
+  ];
+
+  for (const field of requiredFields) {
+    if (!values[field].trim()) {
+      errors[field] = REQUIRED_MESSAGE;
+    }
+  }
+
+  if (values.cep.trim() && normalizeDigits(values.cep).length !== 8) {
+    errors.cep = "Informe um CEP com 8 digitos.";
+  }
+
+  if (values.estado.trim() && values.estado.trim().length !== 2) {
+    errors.estado = "Use a sigla do estado com 2 letras.";
+  }
+
+  return errors;
+}
+
+export function validateRegister(values: RegisterFormValues) {
+  return {
+    ...validateRegisterStepOne(values),
+    ...validateRegisterStepTwo(values),
+  } as FieldErrors<RegisterFormValues>;
 }
 
 function getNameParts(name: string) {

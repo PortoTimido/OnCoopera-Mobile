@@ -6,6 +6,8 @@ import {
   validateEmailRequest,
   validateLogin,
   validateRegister,
+  validateRegisterStepOne,
+  validateRegisterStepTwo,
   validateResetPassword,
   validateTemporaryPassword,
 } from "@/features/auth/validation";
@@ -139,5 +141,50 @@ describe("auth validation", () => {
     });
 
     expect(errors.nome).toBe("Informe nome e sobrenome para gerar o login.");
+  });
+
+  it("validates step one fields independently", () => {
+    const errors = validateRegisterStepOne({
+      confirmarSenha: "Senha1!",
+      dataNascimento: "",
+      email: "paciente@oncoopera.com",
+      nome: "Maria Silva",
+      senha: "Senha1!",
+      telefone: "119999",
+    });
+
+    expect(errors.dataNascimento).toBe("Campo obrigatorio.");
+    expect(errors.telefone).toBe("Informe um telefone valido com DDD.");
+    expect(errors.nome).toBeUndefined();
+    expect(errors.email).toBeUndefined();
+  });
+
+  it("rejects a birth date in the future", () => {
+    const errors = validateRegisterStepOne({
+      confirmarSenha: "Senha1!",
+      dataNascimento: "2999-01-01",
+      email: "paciente@oncoopera.com",
+      nome: "Maria Silva",
+      senha: "Senha1!",
+      telefone: "11999999999",
+    });
+
+    expect(errors.dataNascimento).toBe("A data de nascimento nao pode ser no futuro.");
+  });
+
+  it("validates step two address fields independently", () => {
+    const errors = validateRegisterStepTwo({
+      bairro: "",
+      cep: "123",
+      cidade: "",
+      complemento: "",
+      estado: "SP",
+      logradouro: "",
+      numero: "",
+    });
+
+    expect(errors.cep).toBe("Informe um CEP com 8 digitos.");
+    expect(errors.bairro).toBe("Campo obrigatorio.");
+    expect(errors.estado).toBeUndefined();
   });
 });
