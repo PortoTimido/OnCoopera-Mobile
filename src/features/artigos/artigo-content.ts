@@ -20,3 +20,7 @@ export function getArtigoParagraphs(conteudo: string) {
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
 }
+
+export function getArtigoResumo(conteudo: string) {
+  return getArtigoParagraphs(conteudo)[0] ?? "";
+}
