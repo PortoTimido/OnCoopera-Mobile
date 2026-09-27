@@ -17,6 +17,18 @@ const HISTORY_PAGE_SIZE = 20;
 
 type SintomaSelectionState = Partial<Record<SintomaTipo, { descricaoOutro?: string; intensidade: number }>>;
 
+function getLoadErrorMessage(error: unknown) {
+  if (error instanceof ApiError && error.status === 403) {
+    return "O Diário de sintomas está disponível apenas para contas de pacientes. Entre com uma conta de paciente para continuar.";
+  }
+
+  if (error instanceof ApiError && error.status === 401) {
+    return "Sua sessão expirou. Entre novamente para acessar o Diário de sintomas.";
+  }
+
+  return "Não foi possível carregar o diário. Tente novamente.";
+}
+
 function todayIsoDate() {
   const now = new Date();
   const year = now.getFullYear();
@@ -84,7 +96,8 @@ export function useDiarioSintomas() {
       setAccessToken(token);
 
       try {
-        applyRegistro(await getRegistroDiarioHoje(token));
+        const registro = await getRegistroDiarioHoje(token);
+        applyRegistro(registro);
       } catch (error) {
         if (!(error instanceof ApiError && error.status === 404)) {
           throw error;
@@ -93,8 +106,8 @@ export function useDiarioSintomas() {
       }
 
       await loadHistoryPage(token, 1, false);
-    } catch {
-      setLoadError("Não foi possível carregar o diário. Tente novamente.");
+    } catch (error) {
+      setLoadError(getLoadErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

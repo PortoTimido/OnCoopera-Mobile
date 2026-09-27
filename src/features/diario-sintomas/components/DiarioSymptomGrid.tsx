@@ -39,7 +39,7 @@ export function DiarioSymptomGrid({ onToggle, selected }: DiarioSymptomGridProps
             accessibilityRole="button"
             accessibilityState={{ selected: isSelected }}
             className={cn(
-              "w-[23%] min-w-[72px] items-center gap-1.5 rounded-2xl border-2 py-3",
+              "w-[31%] min-w-[96px] items-center gap-1.5 rounded-2xl border-2 py-3",
               isSelected ? "border-brand-primary bg-brand-soft" : "border-home-border bg-home-canvas",
             )}
             key={tipo}

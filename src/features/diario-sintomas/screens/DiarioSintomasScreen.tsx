@@ -20,13 +20,12 @@ import {
   DiarioVoiceNoteCard,
 } from "../components";
 import { useDiarioSintomas } from "../hooks/use-diario-sintomas";
-import { useVoiceRecorder } from "../hooks/use-voice-recorder";
 
 export function DiarioSintomasScreen() {
   const { dateTimeLabel } = useHomeClock();
   const { initials } = useHomeUser();
   const diario = useDiarioSintomas();
-  const recorder = useVoiceRecorder();
+  const [recordedVoiceNote, setRecordedVoiceNote] = useState<{ durationMillis: number; uri: string } | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
@@ -38,17 +37,17 @@ export function DiarioSintomasScreen() {
   const handleSave = useCallback(async () => {
     setSaveSuccess(false);
 
-    const notaVoz = recorder.recordedUri
-      ? { name: "nota-voz.m4a", type: "audio/m4a", uri: recorder.recordedUri }
+    const notaVoz = recordedVoiceNote
+      ? { name: "nota-voz.m4a", type: "audio/mp4", uri: recordedVoiceNote.uri }
       : undefined;
 
     const success = await diario.save(notaVoz);
 
     if (success) {
-      recorder.reset();
+      setRecordedVoiceNote(null);
       setSaveSuccess(true);
     }
-  }, [diario, recorder]);
+  }, [diario, recordedVoiceNote]);
 
   const existingSource =
     diario.existingNotaVozUrl && diario.registroHojeId && diario.accessToken
@@ -100,18 +99,10 @@ export function DiarioSintomasScreen() {
             ) : null}
 
             <DiarioVoiceNoteCard
-              durationMillis={recorder.durationMillis}
-              error={recorder.error}
               existingSource={existingSource}
-              onCancel={recorder.cancel}
-              onFinish={recorder.finish}
-              onPause={recorder.pause}
               onRemoveExisting={diario.removeExistingNotaVoz}
-              onResume={recorder.resume}
-              onStart={recorder.start}
-              permissionDenied={recorder.permissionDenied}
-              recordedUri={recorder.recordedUri}
-              status={recorder.status}
+              onRecordingChange={setRecordedVoiceNote}
+              recording={recordedVoiceNote}
             />
 
             <FormMessage message={diario.saveError} tone="error" />

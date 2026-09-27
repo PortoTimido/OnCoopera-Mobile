@@ -1,4 +1,5 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { useAudioRecorder } from "expo-audio";
 
 import { DiarioSintomasScreen } from "@/features/diario-sintomas/screens";
 import { ApiError } from "@/lib/api/client";
@@ -39,6 +40,7 @@ jest.mock("@react-native-community/slider", () => {
 const mockedGetRegistroDiarioHoje = jest.mocked(getRegistroDiarioHoje);
 const mockedListRegistrosDiarios = jest.mocked(listRegistrosDiarios);
 const mockedSaveRegistroDiarioHoje = jest.mocked(saveRegistroDiarioHoje);
+const mockedUseAudioRecorder = jest.mocked(useAudioRecorder);
 
 describe("diario sintomas screen", () => {
   beforeEach(() => {
@@ -100,5 +102,30 @@ describe("diario sintomas screen", () => {
     render(<DiarioSintomasScreen />);
 
     await waitFor(() => expect(screen.getByText("Você ainda não tem registros anteriores.")).toBeTruthy());
+  });
+
+  it("explains that the diary is restricted to patient accounts", async () => {
+    mockedGetRegistroDiarioHoje.mockRejectedValue(new ApiError(403, "Esta funcionalidade é exclusiva de pacientes."));
+
+    render(<DiarioSintomasScreen />);
+
+    await waitFor(() =>
+      expect(screen.getByText("O Diário de sintomas está disponível apenas para contas de pacientes. Entre com uma conta de paciente para continuar.")).toBeTruthy(),
+    );
+  });
+
+  it("initializes the recorder only after the patient chooses to record a voice note", async () => {
+    render(<DiarioSintomasScreen />);
+
+    await waitFor(() => expect(screen.getByTestId("diario-voice-start")).toBeTruthy());
+    expect(mockedUseAudioRecorder).not.toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("diario-voice-start"));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockedUseAudioRecorder).toHaveBeenCalled();
   });
 });
