@@ -58,6 +58,10 @@
   --color-article-blue: #8fc7ff;
   --color-article-blue-ink: #1e3a8a;
   --color-article-badge-soft: rgb(255 255 255 / 0.55);
+  --color-article-callout-tip: #e8f8f2;
+  --color-article-callout-tip-border: #d1e6dc;
+  --color-article-callout-question: #fff3df;
+  --color-article-callout-question-border: #eee2cd;
 
   --color-radar-map: #dcebdc;
   --color-radar-map-line: #f5efe1;
