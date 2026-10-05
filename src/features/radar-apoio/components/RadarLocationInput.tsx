@@ -4,11 +4,12 @@ import { TextInput, View } from "react-native-css/components";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
 type RadarLocationInputProps = {
+  onBlur: () => void;
   onChangeText: (value: string) => void;
   value: string;
 };
 
-export function RadarLocationInput({ onChangeText, value }: RadarLocationInputProps) {
+export function RadarLocationInput({ onBlur, onChangeText, value }: RadarLocationInputProps) {
   return (
     <View className="min-h-[72px] flex-row items-center gap-4 rounded-pill border-2 border-radar-info-border bg-white px-6 shadow-home-soft">
       <MapPin color={nativePropColors.brandPrimary} size={21} strokeWidth={3} />
@@ -16,6 +17,7 @@ export function RadarLocationInput({ onChangeText, value }: RadarLocationInputPr
         accessibilityLabel="Cidade para buscar apoios"
         className="flex-1 font-sans-semibold text-[16px] text-home-ink"
         onChangeText={onChangeText}
+        onBlur={onBlur}
         placeholder="Informe sua cidade"
         placeholderTextColor={nativePropColors.homeMuted}
         returnKeyType="search"

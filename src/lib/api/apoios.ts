@@ -46,16 +46,38 @@ export type PaginatedApoios = {
 
 export type ListApoiosParams = {
   cidade?: string;
+  latitude?: number;
+  longitude?: number;
   page?: number;
   pageSize?: number;
   search?: string;
   tipoApoio?: ApoioTipo;
 };
 
+export type NearbyGooglePlace = {
+  address: string;
+  category: string;
+  id: string;
+  latitude: number;
+  longitude: number;
+  name: string;
+};
+
+export type NearbyGooglePlacesParams = {
+  latitude: number;
+  longitude: number;
+};
+
+export type NearbyGooglePlacesResponse = {
+  data: NearbyGooglePlace[];
+};
+
 export function buildApoiosQuery(params: ListApoiosParams = {}) {
   const query = new URLSearchParams();
 
   if (params.cidade?.trim()) query.set("cidade", params.cidade.trim());
+  if (typeof params.latitude === "number") query.set("latitude", String(params.latitude));
+  if (typeof params.longitude === "number") query.set("longitude", String(params.longitude));
   if (params.search?.trim()) query.set("search", params.search.trim());
   if (params.tipoApoio) query.set("tipoApoio", params.tipoApoio);
 
@@ -71,4 +93,12 @@ export function listApoios(params: ListApoiosParams = {}) {
 
 export function getApoioById(id: string) {
   return apiRequest<Apoio>(`/mobile/apoios/${id}`);
+}
+
+export function listNearbyGooglePlaces(params: NearbyGooglePlacesParams, accessToken: string) {
+  return apiRequest<NearbyGooglePlacesResponse>("/mobile/apoios/places/nearby", {
+    body: params,
+    method: "POST",
+    token: accessToken,
+  });
 }
