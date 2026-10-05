@@ -3,8 +3,8 @@ import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native-c
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui";
-import { getArtigoParagraphs, getArtigoResumo } from "@/features/artigos/artigo-content";
-import { ArtigoDetalheTopBar } from "@/features/artigos/components";
+import { getArtigoContentBlocks, getArtigoResumo } from "@/features/artigos/artigo-content";
+import { ArtigoCalloutCard, ArtigoDetalheTopBar } from "@/features/artigos/components";
 import { useArtigo } from "@/features/artigos/hooks/use-artigo";
 import { HomeBottomNav } from "@/features/home/components";
 import type { Artigo } from "@/lib/api/artigos";
@@ -20,7 +20,8 @@ type ArtigoConteudoProps = {
 
 function ArtigoConteudo({ artigo }: ArtigoConteudoProps) {
   const resumo = getArtigoResumo(artigo.conteudo);
-  const paragraphs = getArtigoParagraphs(artigo.conteudo).slice(1);
+  const contentBlocks = getArtigoContentBlocks(artigo.conteudo);
+  const resumoIndex = contentBlocks.findIndex((block) => block.type === "paragraph");
 
   return (
     <ScrollView
@@ -59,11 +60,21 @@ function ArtigoConteudo({ artigo }: ArtigoConteudoProps) {
           <Text className="font-sans-bold text-[16px] leading-[26px] text-home-muted">{resumo}</Text>
         ) : null}
 
-        {paragraphs.map((paragraph, index) => (
-          <Text className="font-sans text-[15px] leading-[24px] text-home-ink" key={`${artigo.id}-p-${index}`}>
-            {paragraph}
-          </Text>
-        ))}
+        {contentBlocks.map((block, index) => {
+          if (block.type === "callout") {
+            return <ArtigoCalloutCard {...block} key={`${artigo.id}-callout-${index}`} />;
+          }
+
+          if (index === resumoIndex) {
+            return null;
+          }
+
+          return (
+            <Text className="font-sans text-[15px] leading-[24px] text-home-ink" key={`${artigo.id}-p-${index}`}>
+              {block.text}
+            </Text>
+          );
+        })}
       </View>
     </ScrollView>
   );
