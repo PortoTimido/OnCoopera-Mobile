@@ -35,5 +35,17 @@ export default function PrivateLayout() {
     return <Redirect href="/login" />;
   }
 
-  return <Stack screenOptions={{ animation: "fade", animationDuration: 220, headerShown: false }} />;
+  return (
+    <Stack screenOptions={{ animation: "fade", animationDuration: 220, headerShown: false }}>
+      <Stack.Screen
+        name="apoios/[id]"
+        options={{
+          animation: "none",
+          contentStyle: { backgroundColor: "transparent" },
+          gestureEnabled: false,
+          presentation: "transparentModal",
+        }}
+      />
+    </Stack>
+  );
 }
