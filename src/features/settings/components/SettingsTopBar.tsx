@@ -1,15 +1,17 @@
 import { useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import { Pressable, View } from "react-native-css/components";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
 export function SettingsTopBar() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View className="h-[56px] flex-row items-center gap-3 border-b border-home-border bg-home-surface px-4">
+    <View className="h-[56px] flex-row items-center gap-3 border-b border-home-border bg-home-surface px-4" style={{ height: 56 + insets.top, paddingTop: insets.top }}>
       <Pressable
         accessibilityLabel="Voltar"
         accessibilityRole="button"

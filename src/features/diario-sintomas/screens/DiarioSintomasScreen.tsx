@@ -55,7 +55,7 @@ export function DiarioSintomasScreen() {
       : null;
 
   return (
-    <SafeAreaView style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
+    <SafeAreaView edges={[]} style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
       <View className="relative flex-1 bg-home-canvas" testID="diario-sintomas-screen">
         <DiarioTopBar dateTimeLabel={dateTimeLabel} initials={initials} />
 

@@ -84,7 +84,7 @@ export function ArtigoDetalheScreen({ id }: ArtigoDetalheScreenProps) {
   const { artigo, error, isLoading } = useArtigo(id);
 
   return (
-    <SafeAreaView style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
+    <SafeAreaView edges={[]} style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
       <View className="relative flex-1 bg-home-canvas" testID="artigo-detalhe-screen">
         <ArtigoDetalheTopBar />
 

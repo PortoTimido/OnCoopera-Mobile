@@ -29,7 +29,7 @@ export function ArtigosListScreen() {
   }
 
   return (
-    <SafeAreaView style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
+    <SafeAreaView edges={[]} style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
       <View className="relative flex-1 bg-home-canvas" testID="artigos-list-screen">
         <ArtigosTopBar dateTimeLabel={dateTimeLabel} initials={initials} />
 

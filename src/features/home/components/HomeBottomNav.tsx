@@ -2,6 +2,7 @@ import { Link, type Href } from "expo-router";
 import { BookOpen, ClipboardList, Home, Sprout } from "lucide-react-native";
 import type { ComponentType } from "react";
 import { Pressable, Text, View } from "react-native-css/components";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { cn } from "@/lib/cn";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
@@ -29,8 +30,13 @@ type HomeBottomNavProps = {
 };
 
 export function HomeBottomNav({ activeId = "inicio" }: HomeBottomNavProps) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View className="absolute bottom-0 left-0 right-0 rounded-t-home-nav border-t border-home-border bg-home-surface px-8 pb-4 pt-4 shadow-home-nav">
+    <View
+      className="absolute bottom-0 left-0 right-0 rounded-t-home-nav border-t border-home-border bg-home-surface px-8 pb-4 pt-4 shadow-home-nav"
+      style={{ paddingBottom: Math.max(insets.bottom, 16) }}
+    >
       <View className="mx-auto w-full max-w-home flex-row items-center justify-between">
         {navItems.map((item) => {
           const Icon = item.icon;

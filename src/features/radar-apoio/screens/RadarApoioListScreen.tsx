@@ -18,7 +18,7 @@ export function RadarApoioListScreen() {
   const { apoios, city, error, hasMore, isLoading, isLoadingMore, loadMore, referenceCoordinates, retry, selectedType, setCity, setSelectedType, submitCity } = useRadarApoio();
 
   return (
-    <SafeAreaView style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
+    <SafeAreaView edges={[]} style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
       <View className="relative flex-1 bg-home-canvas" testID="radar-apoio-list-screen">
         <RadarTopBar dateTimeLabel={dateTimeLabel} initials={initials} />
         <FlatList
