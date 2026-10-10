@@ -11,7 +11,7 @@ const config: ExpoConfig = {
   ios: {
     bundleIdentifier: "com.oncoopera.mobile",
     config: {
-      googleMapsApiKey: process.env.GOOGLE_MAPS_IOS_API_KEY,
+      googleMapsApiKey: process.env.GOOGLE_MAPS_IOS_API_KEY ?? process.env.GOOGLE_MAPS_API_KEY,
     },
     supportsTablet: true,
   },
@@ -22,7 +22,7 @@ const config: ExpoConfig = {
     },
     config: {
       googleMaps: {
-        apiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY,
+        apiKey: process.env.GOOGLE_MAPS_ANDROID_API_KEY ?? process.env.GOOGLE_MAPS_API_KEY,
       },
     },
     package: "com.oncoopera.mobile",

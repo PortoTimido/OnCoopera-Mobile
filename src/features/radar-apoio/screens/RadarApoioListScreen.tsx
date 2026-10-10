@@ -25,7 +25,7 @@ export function RadarApoioListScreen() {
           className="flex-1"
           contentContainerClassName="mx-auto w-full max-w-home gap-6 px-6 pb-32 pt-7"
           data={apoios}
-          ItemSeparatorComponent={() => <View className="h-5" />}
+          ItemSeparatorComponent={() => <View className="h-2" />}
           keyExtractor={(apoio) => apoio.id}
           ListEmptyComponent={
             isLoading ? (
@@ -64,7 +64,7 @@ export function RadarApoioListScreen() {
               </View>
               <RadarLocationInput onBlur={submitCity} onChangeText={setCity} value={city} />
               <RadarTypeFilters onSelect={setSelectedType} selectedType={selectedType} />
-              {apoios.length > 0 && referenceCoordinates ? <RadarMap apoios={apoios} location={referenceCoordinates} /> : null}
+              {apoios.length > 0 && referenceCoordinates ? <RadarMap apoios={apoios} location={referenceCoordinates} showUserLocation /> : null}
             </View>
           }
           onEndReached={() => {

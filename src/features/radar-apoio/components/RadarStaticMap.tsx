@@ -14,7 +14,7 @@ export function RadarStaticMap({ apoios }: RadarStaticMapProps) {
   const markers = getRadarMapMarkers(apoios);
 
   return (
-    <View accessibilityLabel="Prévia estática do mapa de apoios" className="h-[190px] overflow-hidden rounded-home-card border-2 border-radar-info-border bg-radar-map">
+    <View accessibilityLabel="Prévia estática do mapa de apoios" className="h-[48px] overflow-hidden rounded-home-card border-2 border-radar-info-border bg-radar-map">
       <View className="absolute -left-6 top-11 h-8 w-[130%] rotate-[-18deg] bg-radar-map-line/80" />
       <View className="absolute -left-6 top-28 h-6 w-[130%] rotate-[14deg] bg-radar-map-line/80" />
       <View className="absolute left-[18%] top-0 h-[120%] w-5 rotate-[28deg] bg-radar-map-line/80" />
