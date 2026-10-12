@@ -1,10 +1,11 @@
 import { Clock3 } from "lucide-react-native";
+import { useWindowDimensions } from "react-native";
 import { ActivityIndicator, Image, ScrollView, Text, View } from "react-native-css/components";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AppText } from "@/components/ui";
-import { getArtigoContentBlocks, getArtigoResumo } from "@/features/artigos/artigo-content";
-import { ArtigoCalloutCard, ArtigoDetalheTopBar } from "@/features/artigos/components";
+import { formatArtigoDataPublicacao, getArtigoContentBlocks } from "@/features/artigos/artigo-content";
+import { ArtigoCalloutCard, ArtigoDetalheTopBar, ArtigoHtml, ArtigoSpeechPlayer } from "@/features/artigos/components";
 import { useArtigo } from "@/features/artigos/hooks/use-artigo";
 import { HomeBottomNav } from "@/features/home/components";
 import type { Artigo } from "@/lib/api/artigos";
@@ -19,9 +20,10 @@ type ArtigoConteudoProps = {
 };
 
 function ArtigoConteudo({ artigo }: ArtigoConteudoProps) {
-  const resumo = getArtigoResumo(artigo.conteudo);
   const contentBlocks = getArtigoContentBlocks(artigo.conteudo);
-  const resumoIndex = contentBlocks.findIndex((block) => block.type === "paragraph");
+  const { width } = useWindowDimensions();
+  const contentWidth = Math.max(1, Math.min(width, 430) - 48);
+  const dataPublicacao = formatArtigoDataPublicacao(artigo.dataPublicacao);
 
   return (
     <ScrollView
@@ -56,25 +58,26 @@ function ArtigoConteudo({ artigo }: ArtigoConteudoProps) {
           {artigo.titulo}
         </AppText>
 
-        {resumo ? (
-          <Text className="font-sans-bold text-[16px] leading-[26px] text-home-muted">{resumo}</Text>
+        {artigo.resumo ? (
+          <Text className="font-sans-bold text-[16px] leading-[26px] text-home-muted">{artigo.resumo}</Text>
         ) : null}
+
+        <ArtigoSpeechPlayer artigo={artigo} />
 
         {contentBlocks.map((block, index) => {
           if (block.type === "callout") {
-            return <ArtigoCalloutCard {...block} key={`${artigo.id}-callout-${index}`} />;
+            return <ArtigoCalloutCard {...block} contentWidth={contentWidth - 120} key={`${artigo.id}-callout-${index}`} />;
           }
 
-          if (index === resumoIndex) {
-            return null;
-          }
-
-          return (
-            <Text className="font-sans text-[15px] leading-[24px] text-home-ink" key={`${artigo.id}-p-${index}`}>
-              {block.text}
-            </Text>
-          );
+          return <ArtigoHtml contentWidth={contentWidth} html={block.html} key={`${artigo.id}-html-${index}`} />;
         })}
+
+        {artigo.autorNome || dataPublicacao ? (
+          <View className="gap-1 border-t border-home-border pt-5">
+            {artigo.autorNome ? <Text className="font-sans-bold text-[14px] leading-[22px] text-home-ink">Por {artigo.autorNome}</Text> : null}
+            {dataPublicacao ? <Text className="font-sans text-[13px] leading-[20px] text-home-muted">Publicado em {dataPublicacao}</Text> : null}
+          </View>
+        ) : null}
       </View>
     </ScrollView>
   );

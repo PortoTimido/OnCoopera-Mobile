@@ -9,6 +9,7 @@ export type ArtigoStatus = "RASCUNHO" | "PUBLICADO" | "DESATIVADO";
 
 export type Artigo = {
   autorId: string;
+  autorNome: string;
   categorias: ArtigoTaxonomia[];
   conteudo: string;
   dataAtualizacao: string;
@@ -16,6 +17,7 @@ export type Artigo = {
   dataPublicacao: string | null;
   id: string;
   imagemUrl: string | null;
+  resumo: string | null;
   status: ArtigoStatus;
   tags: ArtigoTaxonomia[];
   tempoLeituraMinutos: number;

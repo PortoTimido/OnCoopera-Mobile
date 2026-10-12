@@ -40,3 +40,11 @@ jest.mock("react-native-reanimated", () => {
     withTiming: (value: number) => value,
   };
 });
+
+jest.mock("@native-html/render", () => {
+  const React = require("react");
+  const { Text } = require("react-native");
+
+  return ({ source }: { source: { html?: string } }) =>
+    React.createElement(Text, { testID: "artigo-html-renderer" }, source.html?.replace(/<[^>]+>/g, ""));
+});

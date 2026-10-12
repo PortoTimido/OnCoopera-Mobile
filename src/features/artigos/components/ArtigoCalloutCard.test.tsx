@@ -7,7 +7,7 @@ describe("ArtigoCalloutCard", () => {
     ["dica", "Dica", "Prefira alimentos leves."],
     ["pergunta", "Pergunte ao seu médico", "Este consumo é seguro?"],
   ] as const)("renders the %s callout with its content", (variant, title, content) => {
-    render(<ArtigoCalloutCard paragraphs={[content]} type="callout" variant={variant} />);
+    render(<ArtigoCalloutCard html={`<p>${content}</p>`} type="callout" variant={variant} />);
 
     expect(screen.getByTestId(`artigo-callout-${variant}`)).toBeTruthy();
     expect(screen.getByLabelText(title)).toBeTruthy();

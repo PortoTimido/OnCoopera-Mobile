@@ -1,11 +1,15 @@
 import { Lightbulb, NotebookTabs } from "lucide-react-native";
 import { Text, View } from "react-native-css/components";
+import { useWindowDimensions } from "react-native";
 
 import type { ArtigoContentBlock } from "@/features/artigos/artigo-content";
+import { ArtigoHtml } from "@/features/artigos/components/ArtigoHtml";
 import { cn } from "@/lib/cn";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
-type ArtigoCalloutCardProps = Extract<ArtigoContentBlock, { type: "callout" }>;
+type ArtigoCalloutCardProps = Extract<ArtigoContentBlock, { type: "callout" }> & {
+  contentWidth?: number;
+};
 
 const calloutAppearance = {
   dica: {
@@ -26,9 +30,11 @@ const calloutAppearance = {
   },
 } as const;
 
-export function ArtigoCalloutCard({ paragraphs, variant }: ArtigoCalloutCardProps) {
+export function ArtigoCalloutCard({ contentWidth, html, variant }: ArtigoCalloutCardProps) {
   const appearance = calloutAppearance[variant];
   const Icon = appearance.icon;
+  const { width } = useWindowDimensions();
+  const availableContentWidth = contentWidth ?? Math.max(1, Math.min(width, 430) - 168);
 
   return (
     <View
@@ -41,12 +47,8 @@ export function ArtigoCalloutCard({ paragraphs, variant }: ArtigoCalloutCardProp
         <Text className={cn("font-sans-bold text-[25px] leading-[31px]", appearance.ink)}>{appearance.title}</Text>
       </View>
 
-      <View className="gap-3 pl-[56px]">
-        {paragraphs.map((paragraph, index) => (
-          <Text className={cn("font-sans text-[18px] leading-[27px]", appearance.ink)} key={`${variant}-${index}`}>
-            {paragraph}
-          </Text>
-        ))}
+      <View className="pl-[56px]">
+        <ArtigoHtml color={appearance.color} contentWidth={availableContentWidth} html={html} />
       </View>
     </View>
   );
