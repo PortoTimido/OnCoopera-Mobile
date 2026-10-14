@@ -64,6 +64,7 @@ export function useVoiceRecorder() {
     try {
       const finishedDuration = recorderState.durationMillis;
       await recorder.stop();
+      await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => undefined);
       const uri = recorder.uri;
 
       if (!uri) {
@@ -90,6 +91,8 @@ export function useVoiceRecorder() {
       deleteRecordingFile(recorder.uri);
     } catch {
       // Best-effort stop before discarding the recording.
+    } finally {
+      await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => undefined);
     }
 
     setError(null);

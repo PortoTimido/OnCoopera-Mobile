@@ -7,7 +7,7 @@ import type { Humor, RegistroDiario } from "@/lib/api/diario-sintomas";
 import { cn } from "@/lib/cn";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
-import { formatDataRegistroLabel, formatRegistroSummary, HUMOR_OPTIONS } from "../diario-sintomas-formatters";
+import { formatDataRegistroLabel, formatRegistroSummary, getRegistroDate, HUMOR_OPTIONS } from "../diario-sintomas-formatters";
 
 const HUMOR_SURFACE: Record<Humor, string> = {
   BEM: "bg-feedback-success-soft",
@@ -23,10 +23,11 @@ const HUMOR_EMOJI: Record<Humor, string> = Object.fromEntries(HUMOR_OPTIONS.map(
 >;
 
 function DiarioHistoryCard({ registro }: { registro: RegistroDiario }) {
+  const dateLabel = formatDataRegistroLabel(getRegistroDate(registro));
   return (
     <Link asChild href={`/diario/${registro.id}` as Href}>
       <Pressable
-        accessibilityLabel={`Abrir registro de ${formatDataRegistroLabel(registro.dataRegistro)}`}
+        accessibilityLabel={`Abrir registro de ${dateLabel}`}
         accessibilityRole="button"
         className="min-h-[76px] flex-row items-center gap-4 rounded-home-card border border-home-border bg-home-surface px-5 py-4"
         testID={`diario-history-item-${registro.id}`}
@@ -36,7 +37,7 @@ function DiarioHistoryCard({ registro }: { registro: RegistroDiario }) {
         </View>
         <View className="flex-1 gap-0.5">
           <AppText className="text-[15px] leading-[20px] text-home-ink" variant="subtitle">
-            {formatDataRegistroLabel(registro.dataRegistro)}
+            {dateLabel}
           </AppText>
           <Text className="font-sans text-[13px] leading-[18px] text-home-muted" numberOfLines={1}>
             {formatRegistroSummary(registro)}

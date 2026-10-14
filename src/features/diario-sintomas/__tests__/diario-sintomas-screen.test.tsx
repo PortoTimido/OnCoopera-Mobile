@@ -104,6 +104,22 @@ describe("diario sintomas screen", () => {
     await waitFor(() => expect(screen.getByText("Você ainda não tem registros anteriores.")).toBeTruthy());
   });
 
+  it("shows a previous record's timestamp when dataRegistro is missing", async () => {
+    mockedListRegistrosDiarios.mockResolvedValue({
+      data: [{ dataHora: "2024-07-14T10:00:00.000Z", dataRegistro: undefined as unknown as string, humor: "BEM", id: "registro-antigo", sintomas: [{ intensidade: 6, tipo: "FEBRE" }] }],
+      page: 1,
+      pageSize: 20,
+      total: 1,
+      totalPages: 1,
+    });
+
+    render(<DiarioSintomasScreen />);
+
+    await waitFor(() => expect(screen.getByTestId("diario-history-item-registro-antigo")).toBeTruthy());
+    expect(screen.getByText("14 de jul")).toBeTruthy();
+    expect(screen.queryByText(/NaN de undefined/)).toBeNull();
+  });
+
   it("explains that the diary is restricted to patient accounts", async () => {
     mockedGetRegistroDiarioHoje.mockRejectedValue(new ApiError(403, "Esta funcionalidade é exclusiva de pacientes."));
 

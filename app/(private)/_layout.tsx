@@ -46,6 +46,15 @@ export default function PrivateLayout() {
           presentation: "transparentModal",
         }}
       />
+      <Stack.Screen
+        name="diario/[id]"
+        options={{
+          animation: "none",
+          contentStyle: { backgroundColor: "transparent" },
+          gestureEnabled: false,
+          presentation: "transparentModal",
+        }}
+      />
     </Stack>
   );
 }

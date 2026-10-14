@@ -37,14 +37,42 @@ export function formatIntensidade(intensidade: number) {
   return `${Math.round(intensidade)}/10`;
 }
 
-function toLocalDate(dateOnly: string) {
-  const [year, month, day] = dateOnly.split("-").map(Number);
-
-  return new Date(year, (month ?? 1) - 1, day ?? 1);
+export function getBrasiliaCalendarDate(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const year = Number(parts.find((part) => part.type === "year")?.value);
+  const month = Number(parts.find((part) => part.type === "month")?.value);
+  const day = Number(parts.find((part) => part.type === "day")?.value);
+  return new Date(year, month - 1, day);
 }
 
-export function formatDataRegistroLabel(dataRegistro: string, referenceDate = new Date()) {
-  const date = toLocalDate(dataRegistro);
+function toLocalDate(value: string | null | undefined) {
+  if (!value) return null;
+
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})(?:T00:00:00(?:\.000)?(?:Z|\+00:00))?$/.exec(value);
+  if (dateOnly) {
+    const [, year, month, day] = dateOnly;
+    const date = new Date(Number(year), Number(month) - 1, Number(day));
+    return date.getFullYear() === Number(year) && date.getMonth() === Number(month) - 1 && date.getDate() === Number(day)
+      ? date
+      : null;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : getBrasiliaCalendarDate(date);
+}
+
+export function getRegistroDate(registro: Pick<RegistroDiario, "dataRegistro" | "dataHora">) {
+  return toLocalDate(registro.dataRegistro) ?? toLocalDate(registro.dataHora);
+}
+
+export function formatDataRegistroLabel(value: Date | string | null | undefined, referenceDate = getBrasiliaCalendarDate(new Date())) {
+  const date = value instanceof Date ? value : toLocalDate(value);
+  if (!date || Number.isNaN(date.getTime())) return "Data indisponível";
   const today = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
   const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const diffDays = Math.round((today.getTime() - target.getTime()) / (24 * 60 * 60 * 1000));
@@ -57,8 +85,9 @@ export function formatDataRegistroLabel(dataRegistro: string, referenceDate = ne
   return dayMonth;
 }
 
-export function formatDataRegistroFull(dataRegistro: string) {
-  const date = toLocalDate(dataRegistro);
+export function formatDataRegistroFull(value: Date | string | null | undefined) {
+  const date = value instanceof Date ? value : toLocalDate(value);
+  if (!date || Number.isNaN(date.getTime())) return "Data indisponível";
 
   return `${WEEKDAY_NAMES[date.getDay()]}, ${date.getDate()} de ${MONTH_NAMES_SHORT[date.getMonth()]}`.replace(/^./, (c) =>
     c.toLocaleUpperCase("pt-BR"),

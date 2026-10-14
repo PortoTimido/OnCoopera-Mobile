@@ -12,6 +12,7 @@ import {
   type VoiceNoteFile,
 } from "@/lib/api/diario-sintomas";
 import { getAccessToken } from "@/lib/auth/session";
+import { getBrasiliaCalendarDate, getRegistroDate } from "../diario-sintomas-formatters";
 
 const HISTORY_PAGE_SIZE = 20;
 
@@ -30,7 +31,7 @@ function getLoadErrorMessage(error: unknown) {
 }
 
 function todayIsoDate() {
-  const now = new Date();
+  const now = getBrasiliaCalendarDate(new Date());
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
@@ -75,7 +76,12 @@ export function useDiarioSintomas() {
   const loadHistoryPage = useCallback(async (token: string, page: number, append: boolean) => {
     const response = await listRegistrosDiarios({ page, pageSize: HISTORY_PAGE_SIZE }, token);
     const today = todayIsoDate();
-    const filtered = response.data.filter((registro) => registro.dataRegistro !== today);
+    const filtered = response.data.filter((registro) => {
+      const date = getRegistroDate(registro);
+      if (!date) return true;
+      const localDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      return localDate !== today;
+    });
 
     setHistory((current) => (append ? [...current, ...filtered] : filtered));
     setHistoryPage(response.page);
