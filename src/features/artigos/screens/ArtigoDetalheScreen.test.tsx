@@ -22,9 +22,9 @@ describe("ArtigoDetalheScreen", () => {
         categorias: [],
         conteudo: [
           "<h2>Conteúdo com formatação</h2><p>Texto <strong>importante</strong>.</p>",
-          "<p>## Dica ##</p><p>Prefira alimentos leves.</p><p>##</p>",
+          "<p><strong>## Dica ##</strong></p><p>Prefira alimentos leves.</p><p><span>##</span></p>",
           "<ul><li>Primeiro item</li></ul>",
-          "<p>## Pergunta ##</p><p>Esta opção é segura?</p><p>##</p>",
+          "<p><em>## Pergunta ##</em></p><p>Esta opção é segura?</p><p><strong>##</strong></p>",
         ].join(""),
         dataAtualizacao: "2026-10-10T12:00:00.000Z",
         dataCriacao: "2026-10-10T12:00:00.000Z",

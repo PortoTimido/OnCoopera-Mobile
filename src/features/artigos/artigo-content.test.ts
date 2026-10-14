@@ -33,6 +33,28 @@ describe("artigo content", () => {
     ]);
   });
 
+  it("recognizes standalone markers wrapped in inline HTML while retaining the callout markup", () => {
+    const conteudo = [
+      '<p class="marker"><strong> ##&nbsp;dIcA&nbsp;## </strong></p>',
+      '<p><em>Prefira alimentos leves.</em></p>',
+      '<div><span> ## </span></div>',
+      '<h3><span>## PERGUNTA ##</span></h3>',
+      '<p><a href="https://example.com">Esta opcao e segura?</a></p>',
+      '<p><strong>##</strong></p>',
+    ].join("");
+
+    expect(getArtigoContentBlocks(conteudo)).toEqual([
+      { html: "<p><em>Prefira alimentos leves.</em></p>", type: "callout", variant: "dica" },
+      { html: '<p><a href="https://example.com">Esta opcao e segura?</a></p>', type: "callout", variant: "pergunta" },
+    ]);
+  });
+
+  it("does not turn markers mixed with ordinary text into a card", () => {
+    const conteudo = "<p>Leia ## Dica ## antes de continuar.</p><p>##</p>";
+
+    expect(getArtigoContentBlocks(conteudo)).toEqual([{ html: conteudo, type: "html" }]);
+  });
+
   it("accepts missing content and formats only valid publication dates", () => {
     expect(getArtigoContentBlocks(undefined)).toEqual([]);
     expect(formatArtigoDataPublicacao("invalida")).toBeUndefined();
