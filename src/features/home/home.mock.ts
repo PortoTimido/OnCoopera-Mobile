@@ -1,10 +1,4 @@
 export const homeMock = {
-  appointment: {
-    day: "14 Marco",
-    doctor: "Dr. Rafael Souza",
-    label: "PROXIMA CONSULTA",
-    time: "10:30",
-  },
   prompt: {
     body: "Registrar seus sintomas ajuda sua equipe medica a cuidar melhor de voce.",
     cta: "Registrar agora",

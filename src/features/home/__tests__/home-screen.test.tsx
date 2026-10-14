@@ -57,7 +57,8 @@ describe("home screen", () => {
     expect(screen.getByText("Apoio")).toBeTruthy();
     expect(screen.getByText("Artigos")).toBeTruthy();
     expect(screen.getByText("Como voce esta hoje?")).toBeTruthy();
-    expect(screen.getByText("Dr. Rafael Souza")).toBeTruthy();
+    expect(screen.queryByText("Dr. Rafael Souza")).toBeNull();
+    expect(screen.queryByText("PROXIMA CONSULTA")).toBeNull();
     expect(screen.getByText("Gerar relatorio medico")).toBeTruthy();
     expect(screen.getByTestId("home-nav-inicio").props.accessibilityState).toEqual({
       disabled: false,
