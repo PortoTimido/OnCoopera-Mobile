@@ -9,6 +9,8 @@ node_modules/
 .expo/
 dist/
 web-build/
+/.expo-web-check/
+/expo-web-verify/
 expo-env.d.ts
 
 # Native
