@@ -1,8 +1,10 @@
 import { router, useLocalSearchParams } from "expo-router";
+import * as Linking from "expo-linking";
+import * as Location from "expo-location";
 import { Clock3, Map, MapPin, Phone } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { BackHandler, Pressable, StyleSheet, useWindowDimensions } from "react-native";
+import { Alert, BackHandler, Modal, Platform, Pressable, StyleSheet, useWindowDimensions } from "react-native";
 import { ScrollView, Text, View } from "react-native-css/components";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from "react-native-reanimated";
@@ -17,6 +19,17 @@ import { APOIO_TIPO_LABEL, formatApoioAddress, formatApoioSchedule } from "../ra
 const OVERLAY_OPACITY = 0.6;
 const CLOSE_DISTANCE_RATIO = 0.25;
 const CLOSE_VELOCITY = 1_000;
+type Coordinates = { latitude: number; longitude: number };
+
+function directionsUrl(app: "google" | "waze" | "apple", origin: Coordinates, destination: Coordinates) {
+  const from = `${origin.latitude},${origin.longitude}`;
+  const to = `${destination.latitude},${destination.longitude}`;
+
+  if (app === "waze") return `waze://?ll=${encodeURIComponent(to)}&navigate=yes`;
+  if (app === "apple") return `http://maps.apple.com/?saddr=${encodeURIComponent(from)}&daddr=${encodeURIComponent(to)}`;
+  if (Platform.OS === "ios") return `comgooglemaps://?saddr=${encodeURIComponent(from)}&daddr=${encodeURIComponent(to)}&directionsmode=driving`;
+  return `google.navigation:q=${encodeURIComponent(to)}`;
+}
 
 function DetailInformation({ children, icon, title }: { children: string; icon: ReactNode; title: string }) {
   return (
@@ -55,6 +68,9 @@ export function RadarApoioDetailScreen() {
   const insets = useSafeAreaInsets();
   const [apoio, setApoio] = useState<Apoio | null>(null);
   const [error, setError] = useState(false);
+  const [origin, setOrigin] = useState<Coordinates | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [showMapChoices, setShowMapChoices] = useState(false);
   const isClosing = useRef(false);
   const sheetTranslateY = useSharedValue(height);
   const overlayOpacity = useSharedValue(0);
@@ -122,6 +138,44 @@ export function RadarApoioDetailScreen() {
 
   const address = apoio ? formatApoioAddress(apoio) : null;
 
+  const chooseMap = useCallback(async () => {
+    if (isLocating || !apoio) return;
+    setIsLocating(true);
+    try {
+      const currentPermission = await Location.getForegroundPermissionsAsync();
+      const permission = currentPermission.granted ? currentPermission : await Location.requestForegroundPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert("Localização necessária", "Permita o acesso à localização para criar uma rota a partir de onde você está.");
+        return;
+      }
+
+      const position = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const { latitude, longitude } = position.coords;
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) throw new Error("Invalid location");
+      setOrigin({ latitude, longitude });
+      setShowMapChoices(true);
+    } catch {
+      Alert.alert("Localização indisponível", "Não foi possível obter sua localização atual. Tente novamente.");
+    } finally {
+      setIsLocating(false);
+    }
+  }, [apoio, isLocating]);
+
+  const openDirections = useCallback(async (app: "google" | "waze" | "apple") => {
+    if (!apoio || !origin) return;
+    setShowMapChoices(false);
+    const destination = apoio.endereco;
+    if (!Number.isFinite(destination.latitude) || !Number.isFinite(destination.longitude)) {
+      Alert.alert("Destino indisponível", "Este apoio não possui coordenadas válidas para criar uma rota.");
+      return;
+    }
+    try {
+      await Linking.openURL(directionsUrl(app, origin, destination));
+    } catch {
+      Alert.alert("Não foi possível abrir o mapa", "Verifique se o aplicativo escolhido está instalado e tente novamente.");
+    }
+  }, [apoio, origin]);
+
   return (
     <View style={styles.root} testID="radar-apoio-detail-screen">
       <Animated.View pointerEvents="none" style={[styles.overlay, overlayStyle]} />
@@ -151,9 +205,9 @@ export function RadarApoioDetailScreen() {
               <DetailInformation icon={<MapPin color={nativePropColors.brandPrimary} size={18} strokeWidth={2.6} />} title="Endereço">{`${address.lineOne}\n${address.lineTwo}`}</DetailInformation>
               <DetailInformation icon={<Phone color={nativePropColors.brandPrimary} size={18} strokeWidth={2.6} />} title="Telefone">{apoio.telefone}</DetailInformation>
               <DetailInformation icon={<Clock3 color={nativePropColors.homeLavenderInk} size={18} strokeWidth={2.4} />} title="Horário">{formatApoioSchedule(apoio.horarios)}</DetailInformation>
-              <Pressable accessibilityLabel="Como chegar estará disponível em breve" accessibilityRole="button" accessibilityState={{ disabled: true }} className="min-h-[52px] flex-row items-center justify-center gap-3 rounded-pill bg-brand-mint px-6" disabled testID="radar-directions-button">
+              <Pressable accessibilityLabel="Como chegar" accessibilityRole="button" accessibilityState={{ disabled: isLocating }} className="min-h-[52px] flex-row items-center justify-center gap-3 rounded-pill bg-brand-mint px-6" disabled={isLocating} onPress={() => void chooseMap()} testID="radar-directions-button">
                 <Map color={nativePropColors.brandPrimary} size={22} strokeWidth={2.5} />
-                <Text className="font-sans-bold text-[16px] text-brand-primary">Como chegar</Text>
+                <Text className="font-sans-bold text-[16px] text-brand-primary">{isLocating ? "Obtendo localização..." : "Como chegar"}</Text>
               </Pressable>
             </>
           ) : null}
@@ -164,11 +218,31 @@ export function RadarApoioDetailScreen() {
           ) : null}
         </ScrollView>
       </Animated.View>
+      <Modal animationType="fade" onRequestClose={() => setShowMapChoices(false)} transparent visible={showMapChoices}>
+        <View style={styles.choiceBackdrop}>
+          <View className="w-full gap-3 rounded-home-card bg-white p-6" testID="radar-map-choices">
+            <AppText className="text-center text-brand-primary" variant="title">Abrir rota em</AppText>
+            <Pressable accessibilityRole="button" className="rounded-pill bg-brand-mint p-4" onPress={() => void openDirections("google")} testID="radar-map-google">
+              <Text className="text-center font-sans-bold text-brand-primary">Google Maps</Text>
+            </Pressable>
+            <Pressable accessibilityRole="button" className="rounded-pill bg-brand-mint p-4" onPress={() => void openDirections("waze")} testID="radar-map-waze">
+              <Text className="text-center font-sans-bold text-brand-primary">Waze</Text>
+            </Pressable>
+            {Platform.OS === "ios" ? <Pressable accessibilityRole="button" className="rounded-pill bg-brand-mint p-4" onPress={() => void openDirections("apple")} testID="radar-map-apple">
+              <Text className="text-center font-sans-bold text-brand-primary">Apple Maps</Text>
+            </Pressable> : null}
+            <Pressable accessibilityRole="button" className="p-3" onPress={() => setShowMapChoices(false)}>
+              <Text className="text-center font-sans-bold text-brand-primary">Cancelar</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  choiceBackdrop: { ...StyleSheet.absoluteFill, alignItems: "center", backgroundColor: "#00000099", justifyContent: "center", padding: 24 },
   overlay: { ...StyleSheet.absoluteFill, backgroundColor: "#000000" },
   root: { ...StyleSheet.absoluteFill, justifyContent: "flex-end" },
   sheet: {
