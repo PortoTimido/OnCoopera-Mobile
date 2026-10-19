@@ -1,3 +1,4 @@
+import * as FileSystem from "expo-file-system/legacy";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { useRouter } from "expo-router";
@@ -17,6 +18,17 @@ import { useMedicalReport } from "../hooks/use-medical-report";
 
 const BAR_COLORS = ["bg-brand-primary", "bg-report-coral", "bg-home-purple"];
 const TEXT_COLORS = ["text-brand-primary", "text-report-coral-ink", "text-home-lavender-ink"];
+
+async function writePdfToShareableCache(base64: string) {
+  if (!FileSystem.cacheDirectory) {
+    throw new Error("Diretório de cache indisponível.");
+  }
+
+  const shareableUri = `${FileSystem.cacheDirectory}oncoopera-relatorio-medico-${Date.now()}.pdf`;
+
+  await FileSystem.writeAsStringAsync(shareableUri, base64, { encoding: FileSystem.EncodingType.Base64 });
+  return shareableUri;
+}
 
 function printReportOnWeb(html: string) {
   return new Promise<void>((resolve, reject) => {
@@ -81,8 +93,18 @@ export function MedicalReportScreen() {
       }
 
       stage = "geração do arquivo PDF";
-      const { uri } = await Print.printToFileAsync({ html });
+      const needsShareableCopy = Platform.OS === "android";
+      // On Android, the URI created by expo-print may not be readable by expo-sharing.
+      // Base64 lets us create a new file without reading that restricted URI.
+      const { base64, uri } = await Print.printToFileAsync({ base64: needsShareableCopy, html });
       if (!uri) throw new Error("A geração do PDF não retornou um arquivo.");
+
+      let shareUri = uri;
+      if (needsShareableCopy) {
+        stage = "preparação do PDF para compartilhamento";
+        if (!base64) throw new Error("A geração do PDF não retornou o conteúdo do arquivo.");
+        shareUri = await writePdfToShareableCache(base64);
+      }
 
       stage = "verificação do compartilhamento";
       const isSharingAvailable = await Sharing.isAvailableAsync();
@@ -92,7 +114,7 @@ export function MedicalReportScreen() {
       }
 
       stage = "compartilhamento do PDF";
-      await Sharing.shareAsync(uri, { mimeType: "application/pdf", UTI: "com.adobe.pdf" });
+      await Sharing.shareAsync(shareUri, { mimeType: "application/pdf", UTI: "com.adobe.pdf" });
     } catch (error) {
       console.error(`[Relatório Médico] Falha na ${stage} (${Platform.OS}).`, error);
       setGenerationError("Não foi possível gerar ou compartilhar o PDF. Tente novamente.");

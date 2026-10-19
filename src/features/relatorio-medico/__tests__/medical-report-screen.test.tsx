@@ -1,6 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
+import { Platform } from "react-native";
 
 import { MedicalReportScreen } from "@/features/relatorio-medico/screens";
 import { getMe } from "@/lib/api/auth";
@@ -12,6 +14,11 @@ jest.mock("expo-router", () => ({
   useRouter: () => ({ back: jest.fn() }),
 }));
 
+jest.mock("expo-file-system/legacy", () => ({
+  cacheDirectory: "file:///cache/",
+  EncodingType: { Base64: "base64" },
+  writeAsStringAsync: jest.fn(),
+}));
 jest.mock("expo-print", () => ({ printToFileAsync: jest.fn() }));
 jest.mock("expo-sharing", () => ({ isAvailableAsync: jest.fn(), shareAsync: jest.fn() }));
 jest.mock("@/lib/api/auth", () => ({ ...jest.requireActual("@/lib/api/auth"), getMe: jest.fn() }));
@@ -19,12 +26,16 @@ jest.mock("@/lib/api/diario-sintomas", () => ({ ...jest.requireActual("@/lib/api
 
 const mockedGetMe = jest.mocked(getMe);
 const mockedListRecords = jest.mocked(listRegistrosDiarios);
+const mockedWriteFile = jest.mocked(FileSystem.writeAsStringAsync);
 const mockedPrint = jest.mocked(Print.printToFileAsync);
 const mockedCanShare = jest.mocked(Sharing.isAvailableAsync);
 const mockedShare = jest.mocked(Sharing.shareAsync);
 
 describe("medical report screen", () => {
+  let platformReplacement: ReturnType<typeof jest.replaceProperty>;
+
   beforeEach(() => {
+    platformReplacement = jest.replaceProperty(Platform, "OS", "android");
     setMemorySession({
       accessToken: "token",
       usuario: { dataNascimento: "1990-01-01", email: "ana@oncoopera.com", id: "user", login: "ana", nome: "Ana Costa", perfisAdministrativos: [], status: "ATIVO", telefone: "11999999999", tipo: "PACIENTE", trocaSenhaObrigatoria: false, ultimoAcesso: null },
@@ -37,12 +48,14 @@ describe("medical report screen", () => {
       total: 1,
       totalPages: 1,
     });
-    mockedPrint.mockResolvedValue({ numberOfPages: 1, uri: "file:///report.pdf" });
+    mockedPrint.mockResolvedValue({ base64: "pdf-in-base64", numberOfPages: 1, uri: "file:///report.pdf" });
+    mockedWriteFile.mockResolvedValue(undefined);
     mockedCanShare.mockResolvedValue(true);
     mockedShare.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
+    platformReplacement.restore();
     setMemorySession(null);
     jest.clearAllMocks();
   });
@@ -58,7 +71,15 @@ describe("medical report screen", () => {
 
     fireEvent.press(screen.getByTestId("medical-report-generate"));
     await waitFor(() => expect(mockedPrint).toHaveBeenCalled());
-    expect(mockedShare).toHaveBeenCalledWith("file:///report.pdf", { mimeType: "application/pdf", UTI: "com.adobe.pdf" });
+    expect(mockedPrint).toHaveBeenCalledWith(expect.objectContaining({ base64: true }));
+    await waitFor(() => expect(mockedWriteFile).toHaveBeenCalled());
+    expect(mockedWriteFile).toHaveBeenCalledWith(expect.stringMatching(/^file:\/\/\/cache\/oncoopera-relatorio-medico-\d+\.pdf$/), "pdf-in-base64", {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    expect(mockedShare).toHaveBeenCalledWith(expect.stringMatching(/^file:\/\/\/cache\/oncoopera-relatorio-medico-\d+\.pdf$/), {
+      mimeType: "application/pdf",
+      UTI: "com.adobe.pdf",
+    });
   });
 
   it("shows a message instead of generating a report for an empty period", async () => {
