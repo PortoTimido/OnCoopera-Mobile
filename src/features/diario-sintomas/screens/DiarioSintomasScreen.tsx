@@ -8,7 +8,7 @@ import { AuthButton } from "@/features/auth/components";
 import { HomeBottomNav } from "@/features/home/components";
 import { useHomeClock } from "@/features/home/hooks/use-home-clock";
 import { useHomeUser } from "@/features/home/hooks/use-home-user";
-import { buildNotaVozSource } from "@/lib/api/diario-sintomas";
+import { buildNotaVozSource, createVoiceNoteFile } from "@/lib/api/diario-sintomas";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
 import {
@@ -25,7 +25,7 @@ export function DiarioSintomasScreen() {
   const { dateTimeLabel } = useHomeClock();
   const { initials } = useHomeUser();
   const diario = useDiarioSintomas();
-  const [recordedVoiceNote, setRecordedVoiceNote] = useState<{ durationMillis: number; uri: string } | null>(null);
+  const [recordedVoiceNote, setRecordedVoiceNote] = useState<{ durationMillis: number; size: number; uri: string } | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
@@ -37,9 +37,7 @@ export function DiarioSintomasScreen() {
   const handleSave = useCallback(async () => {
     setSaveSuccess(false);
 
-    const notaVoz = recordedVoiceNote
-      ? { name: "nota-voz.m4a", type: "audio/mp4", uri: recordedVoiceNote.uri }
-      : undefined;
+    const notaVoz = recordedVoiceNote ? createVoiceNoteFile(recordedVoiceNote.uri, recordedVoiceNote.size) : undefined;
 
     const success = await diario.save(notaVoz);
 

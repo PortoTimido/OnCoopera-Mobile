@@ -14,6 +14,7 @@ import { getAccessToken } from "@/lib/auth/session";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
 import { formatDataRegistroFull, formatIntensidade, formatRecordingDuration, getRegistroDate, HUMOR_LABEL, SINTOMA_LABEL } from "../diario-sintomas-formatters";
+import { toggleVoiceNotePlayback } from "../voice-note-playback";
 
 const OVERLAY_OPACITY = 0.6;
 const CLOSE_DISTANCE_RATIO = 0.25;
@@ -28,7 +29,7 @@ function RegistroVoiceNotePlayer({ source }: { source: AudioSource }) {
       accessibilityLabel={status.playing ? "Pausar nota de voz do registro" : "Ouvir nota de voz do registro"}
       accessibilityRole="button"
       className="flex-row items-center gap-4 rounded-home-card border-2 border-feedback-danger/20 bg-feedback-danger-soft px-5 py-4"
-      onPress={() => (status.playing ? player.pause() : player.play())}
+      onPress={() => void toggleVoiceNotePlayback(player, status)}
       testID="diario-detail-play-nota-voz"
     >
       <View className="size-11 items-center justify-center rounded-pill bg-feedback-danger">

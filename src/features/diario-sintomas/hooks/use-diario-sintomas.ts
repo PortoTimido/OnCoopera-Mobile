@@ -15,6 +15,7 @@ import { getAccessToken } from "@/lib/auth/session";
 import { getBrasiliaCalendarDate, getRegistroDate } from "../diario-sintomas-formatters";
 
 const HISTORY_PAGE_SIZE = 20;
+const shouldLogVoiceNoteDiagnostics = __DEV__;
 
 type SintomaSelectionState = Partial<Record<SintomaTipo, { descricaoOutro?: string; intensidade: number }>>;
 
@@ -181,14 +182,33 @@ export function useDiarioSintomas() {
           throw new Error("Sessão expirada. Entre novamente.");
         }
 
+        if (shouldLogVoiceNoteDiagnostics) {
+          console.info("[diario-sintomas] save-start", {
+            hasVoiceNote: Boolean(notaVoz),
+            voiceNoteExtension: notaVoz?.name.split(".").pop(),
+            voiceNoteMimeType: notaVoz?.type,
+            symptomCount: selectedSintomas.length,
+          });
+        }
+
         const registro = await saveRegistroDiarioHoje(
           { humor, notaVoz, removerNotaVoz: !notaVoz && removerNotaVozPending, sintomas: selectedSintomas },
           token,
         );
 
         applyRegistro(registro);
+        if (shouldLogVoiceNoteDiagnostics) {
+          console.info("[diario-sintomas] save-success", { hasVoiceNote: Boolean(registro.notaVozUrl), registroId: registro.id });
+        }
         return true;
       } catch (error) {
+        if (shouldLogVoiceNoteDiagnostics) {
+          console.warn("[diario-sintomas] save-failed", {
+            apiError: error instanceof ApiError,
+            message: error instanceof Error ? error.message : "Erro desconhecido",
+            status: error instanceof ApiError ? error.status : undefined,
+          });
+        }
         setSaveError(error instanceof ApiError ? error.message : "Não foi possível salvar o registro do dia.");
         return false;
       } finally {

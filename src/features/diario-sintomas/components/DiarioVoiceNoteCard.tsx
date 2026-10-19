@@ -10,12 +10,13 @@ import { nativePropColors } from "@/lib/design/native-prop-colors";
 
 import { formatRecordingDuration } from "../diario-sintomas-formatters";
 import { useVoiceRecorder } from "../hooks/use-voice-recorder";
+import { toggleVoiceNotePlayback } from "../voice-note-playback";
 
 type DiarioVoiceNoteCardProps = {
   existingSource: AudioSource | null;
   onRemoveExisting: () => void;
-  onRecordingChange: (recording: { durationMillis: number; uri: string } | null) => void;
-  recording: { durationMillis: number; uri: string } | null;
+  onRecordingChange: (recording: { durationMillis: number; size: number; uri: string } | null) => void;
+  recording: { durationMillis: number; size: number; uri: string } | null;
 };
 
 function RecordingPulse() {
@@ -98,7 +99,7 @@ function VoiceNotePlayback({ durationMillis, onRemove, source }: { durationMilli
           accessibilityLabel={playerStatus.playing ? "Pausar nota de voz" : "Reproduzir nota de voz"}
           accessibilityRole="button"
           className="size-12 items-center justify-center rounded-pill bg-feedback-danger"
-          onPress={() => (playerStatus.playing ? player.pause() : player.play())}
+          onPress={() => void toggleVoiceNotePlayback(player, playerStatus)}
           testID="diario-voice-play"
         >
           {playerStatus.playing ? (
@@ -137,7 +138,7 @@ function VoiceNoteRecorder({
   onUnavailable,
 }: {
   onCancel: () => void;
-  onComplete: (recording: { durationMillis: number; uri: string }) => void;
+  onComplete: (recording: { durationMillis: number; size: number; uri: string }) => void;
   onUnavailable: (error: string | null, permissionDenied: boolean) => void;
 }) {
   const recorder = useVoiceRecorder();

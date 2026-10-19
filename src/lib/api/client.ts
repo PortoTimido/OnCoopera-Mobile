@@ -1,4 +1,5 @@
 import Constants from "expo-constants";
+import { fetch as expoFetch } from "expo/fetch";
 import { Platform } from "react-native";
 
 const LOCAL_API_PATH = "/api";
@@ -10,6 +11,11 @@ const NETWORK_ERROR_MESSAGE =
 export type ApiErrorBody = {
   error?: string;
   message?: string | string[];
+  nativeError?: {
+    cause?: string;
+    message?: string;
+    name?: string;
+  };
   statusCode?: number;
   [key: string]: unknown;
 };
@@ -29,9 +35,36 @@ export class ApiError extends Error {
 type ApiRequestOptions = Omit<RequestInit, "body" | "headers"> & {
   body?: unknown;
   csrfToken?: string;
+  diagnostics?: ApiRequestDiagnostics;
   headers?: HeadersInit;
   token?: string | null;
 };
+
+export type ApiRequestDiagnostics = {
+  feature: string;
+  metadata?: Record<string, boolean | number | string | undefined>;
+};
+
+function createRequestId() {
+  return `mobile-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function safeErrorDetails(error: unknown) {
+  if (!(error instanceof Error)) {
+    return { message: "Erro não serializável", name: typeof error };
+  }
+
+  return {
+    cause: error.cause instanceof Error ? error.cause.message : typeof error.cause === "string" ? error.cause : undefined,
+    message: error.message,
+    name: error.name,
+  };
+}
+
+function logApiDiagnostic(event: string, requestId: string, details: Record<string, unknown>) {
+  if (!__DEV__) return;
+  console.info("[api-diagnostic]", { event, requestId, ...details });
+}
 
 function extractLanHost(hostUri?: string | null) {
   if (!hostUri) {
@@ -75,11 +108,13 @@ export function buildApiUrl(path: string) {
 
 async function fetchApi(input: string, init: RequestInit) {
   try {
-    return await fetch(input, init);
+    return await expoFetch(input, init);
   } catch (error) {
+    const nativeError = safeErrorDetails(error);
     throw new ApiError(0, NETWORK_ERROR_MESSAGE, {
       error: "NETWORK_ERROR",
-      message: error instanceof Error ? error.message : NETWORK_ERROR_MESSAGE,
+      message: nativeError.message ?? NETWORK_ERROR_MESSAGE,
+      nativeError,
     });
   }
 }
@@ -107,29 +142,67 @@ async function parseJsonSafely(response: Response) {
 }
 
 export async function apiRequest<TResponse>(path: string, options: ApiRequestOptions = {}) {
-  const headers = new Headers(options.headers);
-  const isFormData = options.body instanceof FormData;
+  const { body, csrfToken, diagnostics, headers: suppliedHeaders, token, ...requestOptions } = options;
+  const headers = new Headers(suppliedHeaders);
+  const isFormData = body instanceof FormData;
+  const requestId = diagnostics ? createRequestId() : undefined;
+  const url = buildApiUrl(path);
+  const startedAt = Date.now();
 
   headers.set("Accept", "application/json");
 
-  if (options.body !== undefined && !isFormData && !headers.has("Content-Type")) {
+  if (body !== undefined && !isFormData && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
 
-  if (options.token) {
-    headers.set("Authorization", `Bearer ${options.token}`);
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
   }
 
-  if (options.csrfToken) {
-    headers.set("x-csrf-token", options.csrfToken);
+  if (csrfToken) {
+    headers.set("x-csrf-token", csrfToken);
   }
 
-  const response = await fetchApi(buildApiUrl(path), {
-    ...options,
-    body: options.body === undefined ? undefined : isFormData ? (options.body as FormData) : JSON.stringify(options.body),
-    credentials: "include",
-    headers,
-  });
+  if (requestId) {
+    headers.set("X-Request-Id", requestId);
+    logApiDiagnostic("request-start", requestId, {
+      bodyType: isFormData ? "multipart/form-data" : body === undefined ? "empty" : "application/json",
+      feature: diagnostics?.feature,
+      method: requestOptions.method ?? "GET",
+      metadata: diagnostics?.metadata,
+      url: url.split("?", 1)[0],
+    });
+  }
+
+  let response: Response;
+  try {
+    response = await fetchApi(url, {
+      ...requestOptions,
+      body: body === undefined ? undefined : isFormData ? (body as FormData) : JSON.stringify(body),
+      credentials: "include",
+      headers,
+    });
+  } catch (error) {
+    if (requestId) {
+      const nativeError = error instanceof ApiError ? error.body?.nativeError : safeErrorDetails(error);
+      logApiDiagnostic("request-network-failure", requestId, {
+        durationMillis: Date.now() - startedAt,
+        feature: diagnostics?.feature,
+        nativeError,
+        url: url.split("?", 1)[0],
+      });
+    }
+    throw error;
+  }
+
+  if (requestId) {
+    logApiDiagnostic("response-received", requestId, {
+      durationMillis: Date.now() - startedAt,
+      feature: diagnostics?.feature,
+      responseRequestId: response.headers.get("x-request-id") ?? undefined,
+      status: response.status,
+    });
+  }
 
   if (!response.ok) {
     const body = (await parseJsonSafely(response)) as ApiErrorBody | undefined;

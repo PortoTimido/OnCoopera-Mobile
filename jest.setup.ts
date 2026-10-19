@@ -4,6 +4,10 @@ jest.mock("expo-secure-store", () => ({
   setItemAsync: jest.fn(async () => undefined),
 }));
 
+jest.mock("expo/fetch", () => ({
+  fetch: (...args: Parameters<typeof globalThis.fetch>) => globalThis.fetch(...args),
+}));
+
 jest.mock("react-native-safe-area-context", () => {
   const actual = jest.requireActual("react-native-safe-area-context");
 

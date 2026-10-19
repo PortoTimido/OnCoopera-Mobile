@@ -38,4 +38,20 @@ describe("api client", () => {
       status: 0,
     });
   });
+
+  it("correlates a diagnostic request without logging its authorization token", async () => {
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+
+    await expect(
+      apiRequest("/v1/mobile/diario-sintomas/hoje", {
+        diagnostics: { feature: "diario-sintomas", metadata: { formFields: "humor,sintomas,notaVoz" } },
+        method: "PUT",
+        token: "secret-token",
+      }),
+    ).resolves.toEqual({ ok: true });
+
+    const [, request] = (globalThis.fetch as jest.Mock).mock.calls[0] as [string, RequestInit];
+    expect(new Headers(request.headers).get("X-Request-Id")).toMatch(/^mobile-/);
+    expect(new Headers(request.headers).get("Authorization")).toBe("Bearer secret-token");
+  });
 });
