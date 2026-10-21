@@ -35,6 +35,14 @@ const config: ExpoConfig = {
     "expo-router",
     "expo-font",
     "expo-secure-store",
+    [
+      "expo-image-picker",
+      {
+        cameraPermission: "Permitir que o OnCoopera acesse a câmera para atualizar sua foto de perfil.",
+        microphonePermission: false,
+        photosPermission: "Permitir que o OnCoopera acesse suas fotos para atualizar sua foto de perfil.",
+      },
+    ],
     "expo-sharing",
     [
       "expo-splash-screen",

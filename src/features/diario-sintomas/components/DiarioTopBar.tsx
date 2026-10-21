@@ -3,23 +3,22 @@ import { Settings } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native-css/components";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppText } from "@/components/ui";
+import { AppText, UserAvatar } from "@/components/ui";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
 type DiarioTopBarProps = {
   dateTimeLabel: string;
   initials: string;
+  avatarUri?: string | null;
 };
 
-export function DiarioTopBar({ dateTimeLabel, initials }: DiarioTopBarProps) {
+export function DiarioTopBar({ avatarUri, dateTimeLabel, initials }: DiarioTopBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
     <View className="h-[66px] flex-row items-center justify-between border-b border-home-border bg-home-surface px-4" style={{ height: 66 + insets.top, paddingTop: insets.top }}>
       <View className="flex-row items-center gap-3">
-        <View className="size-8 items-center justify-center rounded-pill bg-brand-mint">
-          <Text className="font-sans-bold text-[10px] leading-[15px] text-brand-primary">{initials}</Text>
-        </View>
+        <UserAvatar initials={initials} uri={avatarUri} />
         <View>
           <AppText className="text-[24px] leading-[30px] text-brand-primary" variant="title">
             Diário
