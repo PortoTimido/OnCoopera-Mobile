@@ -194,7 +194,7 @@ export function useRegister() {
         const session = await login({ identificador: values.email.trim(), senha: values.senha });
 
         await saveAuthSession(session, true);
-        router.replace("/inicio");
+        router.replace({ pathname: "/inicio", params: { medicalGuidance: "1" } });
         return;
       } catch {
         setSuccess("Cadastro enviado com sucesso. Entre com seu e-mail e senha.");

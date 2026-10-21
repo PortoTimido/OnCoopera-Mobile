@@ -76,7 +76,7 @@ export function LoginScreen() {
       });
 
       await saveAuthSession(session, remember);
-      router.replace("/inicio");
+      router.replace({ pathname: "/inicio", params: { medicalGuidance: "1" } });
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         router.push({

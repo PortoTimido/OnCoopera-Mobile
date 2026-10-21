@@ -1,18 +1,37 @@
-import { Link } from "expo-router";
+import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowRight, FileText, PenLine } from "lucide-react-native";
+import { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Pressable, ScrollView, Text, View } from "react-native-css/components";
 
 import { AppText } from "@/components/ui";
-import { HomeBottomNav, HomeShortcutCard, HomeTopBar } from "@/features/home/components";
+import {
+  HomeBottomNav,
+  HomeShortcutCard,
+  HomeTopBar,
+  MedicalGuidanceModal,
+  MedicalGuidanceNotice,
+} from "@/features/home/components";
 import { homeMock } from "@/features/home/home.mock";
 import { useHomeClock } from "@/features/home/hooks/use-home-clock";
 import { useHomeUser } from "@/features/home/hooks/use-home-user";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
 export function HomeScreen() {
+  const router = useRouter();
+  const params = useLocalSearchParams<{ medicalGuidance?: string }>();
   const { dateTimeLabel, greeting } = useHomeClock();
   const { displayName, initials } = useHomeUser();
+  const [medicalGuidanceVisible, setMedicalGuidanceVisible] = useState(() => params.medicalGuidance === "1");
+  const medicalGuidanceHandled = useRef(false);
+
+  useEffect(() => {
+    if (params.medicalGuidance === "1" && !medicalGuidanceHandled.current) {
+      medicalGuidanceHandled.current = true;
+      setMedicalGuidanceVisible(true);
+      router.setParams({ medicalGuidance: undefined });
+    }
+  }, [params.medicalGuidance, router]);
 
   return (
     <SafeAreaView edges={[]} style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
@@ -41,6 +60,8 @@ export function HomeScreen() {
               Como voce esta se sentindo neste momento?
             </Text>
           </View>
+
+          <MedicalGuidanceNotice testID="home-medical-guidance-notice" />
 
           <View className="flex-row flex-wrap justify-between gap-y-8">
             {homeMock.shortcuts.map((shortcut) => (
@@ -89,6 +110,8 @@ export function HomeScreen() {
         </ScrollView>
 
         <HomeBottomNav />
+
+        <MedicalGuidanceModal onClose={() => setMedicalGuidanceVisible(false)} visible={medicalGuidanceVisible} />
       </View>
     </SafeAreaView>
   );

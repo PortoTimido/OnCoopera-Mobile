@@ -1,12 +1,17 @@
-import { render, screen } from "@testing-library/react-native";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 
 import { HomeScreen } from "@/features/home/screens/HomeScreen";
 import type { AuthResponse } from "@/lib/api/auth";
 import { setMemorySession } from "@/lib/auth/session";
 
+const mockSetParams = jest.fn();
+let mockMedicalGuidanceParams: { medicalGuidance?: string } = {};
+
 jest.mock("expo-router", () => ({
   ...jest.requireActual("expo-router"),
   useFocusEffect: (effect: () => void) => require("react").useEffect(effect, []),
+  useLocalSearchParams: () => mockMedicalGuidanceParams,
+  useRouter: () => ({ setParams: mockSetParams }),
 }));
 
 jest.mock("@/features/home/hooks/use-home-clock", () => ({
@@ -36,6 +41,8 @@ const session: AuthResponse = {
 describe("home screen", () => {
   beforeEach(() => {
     setMemorySession(session);
+    mockMedicalGuidanceParams = {};
+    mockSetParams.mockClear();
   });
 
   afterEach(() => {
@@ -60,6 +67,9 @@ describe("home screen", () => {
     expect(screen.queryByText("Dr. Rafael Souza")).toBeNull();
     expect(screen.queryByText("PROXIMA CONSULTA")).toBeNull();
     expect(screen.getByText("Gerar relatorio medico")).toBeTruthy();
+    expect(screen.getByTestId("home-medical-guidance-notice")).toBeTruthy();
+    expect(screen.getByText(/As informações disponibilizadas pelo OnCoopera/)).toBeTruthy();
+    expect(screen.queryByTestId("home-medical-guidance-modal")).toBeNull();
     expect(screen.getByTestId("home-nav-inicio").props.accessibilityState).toEqual({
       disabled: false,
       selected: true,
@@ -68,5 +78,20 @@ describe("home screen", () => {
       disabled: false,
       selected: undefined,
     });
+  });
+
+  it("shows and dismisses the medical guidance after authentication", () => {
+    mockMedicalGuidanceParams = { medicalGuidance: "1" };
+
+    render(<HomeScreen />);
+
+    expect(screen.getByTestId("home-medical-guidance-modal")).toBeTruthy();
+    expect(screen.getByText("Sempre consulte seu médico")).toBeTruthy();
+    expect(screen.getAllByTestId("home-medical-guidance-hospital-icon")).not.toHaveLength(0);
+    expect(mockSetParams).toHaveBeenCalledWith({ medicalGuidance: undefined });
+
+    fireEvent.press(screen.getByTestId("home-medical-guidance-confirm"));
+
+    expect(screen.queryByTestId("home-medical-guidance-modal")).toBeNull();
   });
 });

@@ -102,7 +102,9 @@ describe("register screen", () => {
       expect(mockedLogin).toHaveBeenCalledWith({ identificador: "maria@oncoopera.com", senha: "Senha1!" }),
     );
     await waitFor(() => expect(mockedSaveAuthSession).toHaveBeenCalledWith(session, true));
-    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/inicio"));
+    await waitFor(() =>
+      expect(mockReplace).toHaveBeenCalledWith({ pathname: "/inicio", params: { medicalGuidance: "1" } }),
+    );
   });
 
   it("falls back to a manual login prompt when auto login fails", async () => {
