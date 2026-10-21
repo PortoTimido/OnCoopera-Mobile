@@ -1,15 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { getMe } from "@/lib/api/auth";
+import type { AuthenticatedUser } from "@/lib/api/auth";
+import { useUserAvatar } from "@/features/auth/hooks/use-user-avatar";
 import { getAccessToken, getMemorySession } from "@/lib/auth/session";
 
 const FALLBACK_NAME = "Paciente";
 const FALLBACK_EMAIL = "";
-
-type SettingsProfile = {
-  email: string;
-  name: string;
-};
 
 export function getSettingsUserInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -20,11 +17,8 @@ export function getSettingsUserInitials(name: string) {
 }
 
 export function useSettingsProfile() {
-  const [profile, setProfile] = useState<SettingsProfile | null>(() => {
-    const session = getMemorySession();
-
-    return session ? { email: session.usuario.email, name: session.usuario.nome } : null;
-  });
+  const [profile, setProfile] = useState<AuthenticatedUser | null>(() => getMemorySession()?.usuario ?? null);
+  const { avatarUri } = useUserAvatar(profile);
 
   useEffect(() => {
     if (profile) {
@@ -39,7 +33,7 @@ export function useSettingsProfile() {
 
         if (!token) {
           if (mounted) {
-            setProfile({ email: FALLBACK_EMAIL, name: FALLBACK_NAME });
+            setProfile(null);
           }
           return;
         }
@@ -47,11 +41,11 @@ export function useSettingsProfile() {
         const user = await getMe(token);
 
         if (mounted) {
-          setProfile({ email: user.email, name: user.nome.trim() || FALLBACK_NAME });
+          setProfile(user);
         }
       } catch {
         if (mounted) {
-          setProfile({ email: FALLBACK_EMAIL, name: FALLBACK_NAME });
+          setProfile(null);
         }
       }
     }
@@ -64,14 +58,17 @@ export function useSettingsProfile() {
   }, [profile]);
 
   return useMemo(() => {
-    const name = profile?.name.trim() || FALLBACK_NAME;
+    const name = profile?.nome.trim() || FALLBACK_NAME;
     const email = profile?.email ?? FALLBACK_EMAIL;
 
     return {
       email,
+      avatarUri,
       initials: getSettingsUserInitials(name),
       name,
-      setName: (nextName: string) => setProfile((current) => ({ email: current?.email ?? FALLBACK_EMAIL, name: nextName })),
+      user: profile,
+      setProfile,
+      setName: (nextName: string) => setProfile((current) => (current ? { ...current, nome: nextName } : current)),
     };
-  }, [profile]);
+  }, [avatarUri, profile]);
 }

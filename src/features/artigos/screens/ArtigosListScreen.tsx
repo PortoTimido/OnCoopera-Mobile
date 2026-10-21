@@ -18,7 +18,7 @@ function isCloseToBottom({ contentOffset, contentSize, layoutMeasurement }: Nati
 
 export function ArtigosListScreen() {
   const { dateTimeLabel } = useHomeClock();
-  const { initials } = useHomeUser();
+  const { avatarUri, initials } = useHomeUser();
   const { artigos, error, hasMore, isLoading, isLoadingMore, loadMore, search, selectedTopicoId, setSearch, setSelectedTopicoId, topicos } =
     useArtigos();
 
@@ -31,7 +31,7 @@ export function ArtigosListScreen() {
   return (
     <SafeAreaView edges={[]} style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
       <View className="relative flex-1 bg-home-canvas" testID="artigos-list-screen">
-        <ArtigosTopBar dateTimeLabel={dateTimeLabel} initials={initials} />
+        <ArtigosTopBar avatarUri={avatarUri} dateTimeLabel={dateTimeLabel} initials={initials} />
 
         <ScrollView
           className="flex-1 bg-home-canvas"

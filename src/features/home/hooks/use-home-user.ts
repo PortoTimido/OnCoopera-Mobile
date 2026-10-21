@@ -2,6 +2,8 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { getMe } from "@/lib/api/auth";
+import type { AuthenticatedUser } from "@/lib/api/auth";
+import { useUserAvatar } from "@/features/auth/hooks/use-user-avatar";
 import { getAccessToken, getMemorySession } from "@/lib/auth/session";
 
 const FALLBACK_USER_NAME = "Paciente";
@@ -21,10 +23,11 @@ export function getHomeUserShortName(name: string) {
 }
 
 export function useHomeUser() {
-  const [name, setName] = useState(() => getMemorySession()?.usuario.nome ?? null);
+  const [user, setUser] = useState<AuthenticatedUser | null>(() => getMemorySession()?.usuario ?? null);
+  const { avatarUri } = useUserAvatar(user);
 
   useEffect(() => {
-    if (name) {
+    if (user) {
       return undefined;
     }
 
@@ -36,7 +39,7 @@ export function useHomeUser() {
 
         if (!token) {
           if (mounted) {
-            setName(FALLBACK_USER_NAME);
+            setUser(null);
           }
           return;
         }
@@ -44,11 +47,11 @@ export function useHomeUser() {
         const user = await getMe(token);
 
         if (mounted) {
-          setName(user.nome.trim() || FALLBACK_USER_NAME);
+          setUser(user);
         }
       } catch {
         if (mounted) {
-          setName(FALLBACK_USER_NAME);
+          setUser(null);
         }
       }
     }
@@ -58,25 +61,26 @@ export function useHomeUser() {
     return () => {
       mounted = false;
     };
-  }, [name]);
+  }, [user]);
 
   useFocusEffect(
     useCallback(() => {
-      const sessionName = getMemorySession()?.usuario.nome;
+      const sessionUser = getMemorySession()?.usuario;
 
-      if (sessionName) {
-        setName(sessionName);
+      if (sessionUser) {
+        setUser(sessionUser);
       }
     }, []),
   );
 
   return useMemo(() => {
-    const fullName = name?.trim() || FALLBACK_USER_NAME;
+    const fullName = user?.nome.trim() || FALLBACK_USER_NAME;
     const displayName = getHomeUserShortName(fullName);
 
     return {
       displayName,
       initials: getHomeUserInitials(fullName),
+      avatarUri,
     };
-  }, [name]);
+  }, [avatarUri, user]);
 }

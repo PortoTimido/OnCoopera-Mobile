@@ -23,7 +23,7 @@ import { useDiarioSintomas } from "../hooks/use-diario-sintomas";
 
 export function DiarioSintomasScreen() {
   const { dateTimeLabel } = useHomeClock();
-  const { initials } = useHomeUser();
+  const { avatarUri, initials } = useHomeUser();
   const diario = useDiarioSintomas();
   const [recordedVoiceNote, setRecordedVoiceNote] = useState<{ durationMillis: number; size: number; uri: string } | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -55,7 +55,7 @@ export function DiarioSintomasScreen() {
   return (
     <SafeAreaView edges={[]} style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
       <View className="relative flex-1 bg-home-canvas" testID="diario-sintomas-screen">
-        <DiarioTopBar dateTimeLabel={dateTimeLabel} initials={initials} />
+        <DiarioTopBar avatarUri={avatarUri} dateTimeLabel={dateTimeLabel} initials={initials} />
 
         {diario.isLoading ? (
           <View className="flex-1 items-center justify-center">

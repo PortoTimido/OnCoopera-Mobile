@@ -12,12 +12,12 @@ import { nativePropColors } from "@/lib/design/native-prop-colors";
 
 export function HomeScreen() {
   const { dateTimeLabel, greeting } = useHomeClock();
-  const { displayName, initials } = useHomeUser();
+  const { avatarUri, displayName, initials } = useHomeUser();
 
   return (
     <SafeAreaView edges={[]} style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
       <View className="relative flex-1 bg-home-canvas" testID="home-screen">
-        <HomeTopBar dateTimeLabel={dateTimeLabel} initials={initials} />
+        <HomeTopBar avatarUri={avatarUri} dateTimeLabel={dateTimeLabel} initials={initials} />
 
         <ScrollView
           className="flex-1 bg-home-canvas"

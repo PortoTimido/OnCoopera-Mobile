@@ -1,4 +1,5 @@
 import { apiRequest } from "@/lib/api/client";
+import type { File as ExpoFile } from "expo-file-system";
 
 export type UserStatus = "ATIVO" | "INATIVO" | "BLOQUEADO";
 export type UserType = "USUARIO" | "PACIENTE" | "ADMINISTRADOR";
@@ -15,6 +16,7 @@ export type AuthenticatedUser = {
   tipo: UserType;
   trocaSenhaObrigatoria: boolean;
   ultimoAcesso: string | null;
+  imagemUrl?: string | null;
 };
 
 export type AuthResponse = {
@@ -139,6 +141,24 @@ export function changePassword(payload: ChangePasswordRequest, accessToken: stri
   return apiRequest<void>("/auth/change-password", {
     body: payload,
     method: "POST",
+    token: accessToken,
+  });
+}
+
+export function uploadOwnImage(image: ExpoFile, accessToken: string) {
+  const body = new FormData();
+  body.append("imagem", image);
+
+  return apiRequest<AuthenticatedUser>("/auth/me/imagem", {
+    body,
+    method: "POST",
+    token: accessToken,
+  });
+}
+
+export function deleteOwnImage(accessToken: string) {
+  return apiRequest<void>("/auth/me/imagem", {
+    method: "DELETE",
     token: accessToken,
   });
 }

@@ -14,13 +14,13 @@ import { useRadarApoio } from "../hooks/use-radar-apoio";
 
 export function RadarApoioListScreen() {
   const { dateTimeLabel } = useHomeClock();
-  const { initials } = useHomeUser();
+  const { avatarUri, initials } = useHomeUser();
   const { apoios, city, error, hasMore, isLoading, isLoadingMore, loadMore, referenceCoordinates, retry, selectedType, setCity, setSelectedType, submitCity } = useRadarApoio();
 
   return (
     <SafeAreaView edges={[]} style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
       <View className="relative flex-1 bg-home-canvas" testID="radar-apoio-list-screen">
-        <RadarTopBar dateTimeLabel={dateTimeLabel} initials={initials} />
+        <RadarTopBar avatarUri={avatarUri} dateTimeLabel={dateTimeLabel} initials={initials} />
         <FlatList
           className="flex-1"
           contentContainerClassName="mx-auto w-full max-w-home gap-6 px-6 pb-32 pt-7"
