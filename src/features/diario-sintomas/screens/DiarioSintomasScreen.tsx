@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native-css/components";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AppText, FormMessage } from "@/components/ui";
+import { AppText, AppTopBar, FormMessage } from "@/components/ui";
 import { AuthButton } from "@/features/auth/components";
 import { HomeBottomNav } from "@/features/home/components";
 import { useHomeClock } from "@/features/home/hooks/use-home-clock";
@@ -16,7 +16,6 @@ import {
   DiarioIntensitySlider,
   DiarioMoodSelector,
   DiarioSymptomGrid,
-  DiarioTopBar,
   DiarioVoiceNoteCard,
 } from "../components";
 import { useDiarioSintomas } from "../hooks/use-diario-sintomas";
@@ -55,7 +54,7 @@ export function DiarioSintomasScreen() {
   return (
     <SafeAreaView edges={[]} style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
       <View className="relative flex-1 bg-home-canvas" testID="diario-sintomas-screen">
-        <DiarioTopBar avatarUri={avatarUri} dateTimeLabel={dateTimeLabel} initials={initials} />
+        <AppTopBar avatarUri={avatarUri} dateTimeLabel={dateTimeLabel} initials={initials} title="Diário" />
 
         {diario.isLoading ? (
           <View className="flex-1 items-center justify-center">

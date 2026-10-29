@@ -4,11 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Pressable, ScrollView, Text, View } from "react-native-css/components";
 
-import { AppText } from "@/components/ui";
+import { AppText, AppTopBar } from "@/components/ui";
 import {
   HomeBottomNav,
   HomeShortcutCard,
-  HomeTopBar,
   MedicalGuidanceModal,
   MedicalGuidanceNotice,
 } from "@/features/home/components";
@@ -36,7 +35,7 @@ export function HomeScreen() {
   return (
     <SafeAreaView edges={[]} style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
       <View className="relative flex-1 bg-home-canvas" testID="home-screen">
-        <HomeTopBar avatarUri={avatarUri} dateTimeLabel={dateTimeLabel} initials={initials} />
+        <AppTopBar avatarUri={avatarUri} dateTimeLabel={dateTimeLabel} initials={initials} title="Início" />
 
         <ScrollView
           className="flex-1 bg-home-canvas"

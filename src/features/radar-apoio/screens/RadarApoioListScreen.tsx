@@ -2,14 +2,14 @@ import { FlatList } from "react-native";
 import { ActivityIndicator, Pressable, Text, View } from "react-native-css/components";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AppText } from "@/components/ui";
+import { AppText, AppTopBar } from "@/components/ui";
 import { HomeBottomNav } from "@/features/home/components";
 import { useHomeClock } from "@/features/home/hooks/use-home-clock";
 import { useHomeUser } from "@/features/home/hooks/use-home-user";
 import type { Apoio } from "@/lib/api/apoios";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
-import { ApoioCard, RadarLocationInput, RadarMap, RadarTopBar, RadarTypeFilters } from "../components";
+import { ApoioCard, RadarLocationInput, RadarMap, RadarTypeFilters } from "../components";
 import { useRadarApoio } from "../hooks/use-radar-apoio";
 
 export function RadarApoioListScreen() {
@@ -20,7 +20,7 @@ export function RadarApoioListScreen() {
   return (
     <SafeAreaView edges={[]} style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
       <View className="relative flex-1 bg-home-canvas" testID="radar-apoio-list-screen">
-        <RadarTopBar avatarUri={avatarUri} dateTimeLabel={dateTimeLabel} initials={initials} />
+        <AppTopBar avatarUri={avatarUri} dateTimeLabel={dateTimeLabel} initials={initials} title="Radar de Apoio" />
         <FlatList
           className="flex-1"
           contentContainerClassName="mx-auto w-full max-w-home gap-6 px-6 pb-32 pt-7"
@@ -54,7 +54,7 @@ export function RadarApoioListScreen() {
                   </>
                 ) : null}
               </View>
-            ) : null
+            ) : undefined
           }
           ListHeaderComponent={
             <View className="gap-6 pb-6">

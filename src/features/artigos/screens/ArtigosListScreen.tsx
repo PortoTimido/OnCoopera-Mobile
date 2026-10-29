@@ -2,8 +2,8 @@ import type { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityIndicator, ScrollView, View } from "react-native-css/components";
 
-import { AppText } from "@/components/ui";
-import { ArtigoCard, ArtigoSearchInput, ArtigoTopicoChips, ArtigosTopBar } from "@/features/artigos/components";
+import { AppText, AppTopBar } from "@/components/ui";
+import { ArtigoCard, ArtigoSearchInput, ArtigoTopicoChips } from "@/features/artigos/components";
 import { useArtigos } from "@/features/artigos/hooks/use-artigos";
 import { HomeBottomNav } from "@/features/home/components";
 import { useHomeClock } from "@/features/home/hooks/use-home-clock";
@@ -31,7 +31,7 @@ export function ArtigosListScreen() {
   return (
     <SafeAreaView edges={[]} style={{ backgroundColor: nativePropColors.homeCanvas, flex: 1 }}>
       <View className="relative flex-1 bg-home-canvas" testID="artigos-list-screen">
-        <ArtigosTopBar avatarUri={avatarUri} dateTimeLabel={dateTimeLabel} initials={initials} />
+        <AppTopBar avatarUri={avatarUri} dateTimeLabel={dateTimeLabel} initials={initials} title="Artigos" />
 
         <ScrollView
           className="flex-1 bg-home-canvas"

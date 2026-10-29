@@ -4,5 +4,4 @@ export * from "./RadarLocationInput";
 // nos aplicativos iOS/Android.
 export { RadarMap } from "./RadarMap";
 export * from "./RadarStaticMap";
-export * from "./RadarTopBar";
 export * from "./RadarTypeFilters";

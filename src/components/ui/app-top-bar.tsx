@@ -3,31 +3,43 @@ import { Settings } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native-css/components";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppText, UserAvatar } from "@/components/ui";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
-type DiarioTopBarProps = {
+import { AppText } from "./app-text";
+import { UserAvatar } from "./user-avatar";
+
+type AppTopBarProps = {
+  avatarUri?: string | null;
   dateTimeLabel: string;
   initials: string;
-  avatarUri?: string | null;
+  title: string;
 };
 
-export function DiarioTopBar({ avatarUri, dateTimeLabel, initials }: DiarioTopBarProps) {
+export function AppTopBar({ avatarUri, dateTimeLabel, initials, title }: AppTopBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
     <View className="h-[66px] flex-row items-center justify-between border-b border-home-border bg-home-surface px-4" style={{ height: 66 + insets.top, paddingTop: insets.top }}>
       <View className="flex-row items-center gap-3">
         <UserAvatar initials={initials} uri={avatarUri} />
+
         <View>
           <AppText className="text-[24px] leading-[30px] text-brand-primary" variant="title">
-            Diário
+            {title}
           </AppText>
-          <Text className="font-sans text-[12px] leading-[16px] text-home-muted">{dateTimeLabel}</Text>
+          <Text className="max-w-[235px] font-sans text-[12px] leading-[16px] text-home-muted" numberOfLines={1}>
+            {dateTimeLabel}
+          </Text>
         </View>
       </View>
+
       <Link asChild href="/configuracoes">
-        <Pressable accessibilityLabel="Configurações" accessibilityRole="button" className="size-8 items-center justify-center rounded-pill" hitSlop={8}>
+        <Pressable
+          accessibilityLabel="Configurações"
+          accessibilityRole="button"
+          className="size-8 items-center justify-center rounded-pill"
+          hitSlop={8}
+        >
           <Settings color={nativePropColors.homeNavText} size={19} strokeWidth={2.4} />
         </Pressable>
       </Link>
