@@ -50,11 +50,11 @@ describe("login screen", () => {
   it("opens the medical guidance on Home after a successful login", async () => {
     mockedLogin.mockResolvedValue(session);
 
-    render(<LoginScreen />);
+    await render(<LoginScreen />);
 
-    fireEvent.changeText(screen.getByTestId("login-identificador"), "ana@oncoopera.com");
-    fireEvent.changeText(screen.getByTestId("login-senha"), "Senha1!");
-    fireEvent.press(screen.getByTestId("login-submit"));
+    await fireEvent.changeText(screen.getByTestId("login-identificador"), "ana@oncoopera.com");
+    await fireEvent.changeText(screen.getByTestId("login-senha"), "Senha1!");
+    await fireEvent.press(screen.getByTestId("login-submit"));
 
     await waitFor(() =>
       expect(mockedLogin).toHaveBeenCalledWith({ identificador: "ana@oncoopera.com", senha: "Senha1!" }),

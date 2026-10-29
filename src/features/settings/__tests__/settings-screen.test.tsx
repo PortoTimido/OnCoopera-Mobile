@@ -49,8 +49,8 @@ describe("settings screen", () => {
     delete process.env.EXPO_PUBLIC_API_URL;
   });
 
-  it("renders settings content with the authenticated user's profile", () => {
-    render(<SettingsScreen />);
+  it("renders settings content with the authenticated user's profile", async () => {
+    await render(<SettingsScreen />);
 
     expect(screen.getByTestId("settings-screen")).toBeTruthy();
     expect(screen.getByText("OnCoopera")).toBeTruthy();
@@ -79,11 +79,11 @@ describe("settings screen", () => {
       }),
     );
 
-    render(<SettingsScreen />);
+    await render(<SettingsScreen />);
 
-    fireEvent.press(screen.getByTestId("settings-edit-profile"));
-    fireEvent.changeText(screen.getByTestId("settings-edit-name-input"), "Ana Paula Costa");
-    fireEvent.press(screen.getByTestId("settings-edit-name-save"));
+    await fireEvent.press(screen.getByTestId("settings-edit-profile"));
+    await fireEvent.changeText(screen.getByTestId("settings-edit-name-input"), "Ana Paula Costa");
+    await fireEvent.press(screen.getByTestId("settings-edit-name-save"));
 
     await waitFor(() => expect(screen.getByText("Ana Paula Costa")).toBeTruthy());
 
@@ -97,13 +97,13 @@ describe("settings screen", () => {
   it("changes the patient's password through the change password modal", async () => {
     (globalThis.fetch as jest.Mock).mockResolvedValueOnce(await mockResponse(204));
 
-    render(<SettingsScreen />);
+    await render(<SettingsScreen />);
 
-    fireEvent.press(screen.getByTestId("settings-alterar-senha"));
-    fireEvent.changeText(screen.getByTestId("settings-current-password"), "SenhaAtual!123");
-    fireEvent.changeText(screen.getByTestId("settings-new-password"), "SenhaNova!12345");
-    fireEvent.changeText(screen.getByTestId("settings-confirm-password"), "SenhaNova!12345");
-    fireEvent.press(screen.getByTestId("settings-change-password-save"));
+    await fireEvent.press(screen.getByTestId("settings-alterar-senha"));
+    await fireEvent.changeText(screen.getByTestId("settings-current-password"), "SenhaAtual!123");
+    await fireEvent.changeText(screen.getByTestId("settings-new-password"), "SenhaNova!12345");
+    await fireEvent.changeText(screen.getByTestId("settings-confirm-password"), "SenhaNova!12345");
+    await fireEvent.press(screen.getByTestId("settings-change-password-save"));
 
     await waitFor(() => expect(getMemorySession()).toBeNull());
     expect(mockRouterReplace).toHaveBeenCalledWith({

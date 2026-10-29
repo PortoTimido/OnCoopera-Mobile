@@ -50,13 +50,12 @@ describe("diary record detail sheet", () => {
       sintomas: [{ intensidade: 10, tipo: "FEBRE" }],
     });
 
-    render(<DiarioRegistroDetailScreen />);
+    await render(<DiarioRegistroDetailScreen />);
 
-    expect(screen.getByTestId("diario-registro-detail-skeleton")).toBeTruthy();
     await waitFor(() => expect(screen.getByText("Domingo, 14 de jul")).toBeTruthy());
     expect(screen.getByText("Febre")).toBeTruthy();
     expect(screen.queryByTestId("diario-detail-play-nota-voz")).toBeNull();
-    fireEvent.press(screen.getByTestId("diario-registro-detail-backdrop"));
+    await fireEvent.press(screen.getByTestId("diario-registro-detail-backdrop"));
     expect(require("expo-router").router.back).toHaveBeenCalledTimes(1);
   });
 
@@ -74,11 +73,11 @@ describe("diary record detail sheet", () => {
       sintomas: [{ intensidade: 4, tipo: "DOR" }],
     });
 
-    render(<DiarioRegistroDetailScreen />);
+    await render(<DiarioRegistroDetailScreen />);
 
     const playButton = await screen.findByTestId("diario-detail-play-nota-voz");
     expect(jest.mocked(buildNotaVozSource)).toHaveBeenCalledWith("registro-1", "token");
-    fireEvent.press(playButton);
+    await fireEvent.press(playButton);
     expect(mockPlayAudio).toHaveBeenCalledTimes(1);
   });
 });

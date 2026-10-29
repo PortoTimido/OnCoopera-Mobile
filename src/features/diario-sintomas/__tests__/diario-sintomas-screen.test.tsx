@@ -79,16 +79,16 @@ describe("diario sintomas screen", () => {
       sintomas: [{ intensidade: 5, tipo: "DOR" }],
     });
 
-    render(<DiarioSintomasScreen />);
+    await render(<DiarioSintomasScreen />);
 
     await waitFor(() => expect(screen.getByTestId("diario-mood-selector")).toBeTruthy());
 
-    fireEvent.press(screen.getByTestId("diario-mood-BEM"));
-    fireEvent.press(screen.getByTestId("diario-symptom-DOR"));
+    await fireEvent.press(screen.getByTestId("diario-mood-BEM"));
+    await fireEvent.press(screen.getByTestId("diario-symptom-DOR"));
 
     await waitFor(() => expect(screen.getByTestId("diario-intensity-slider")).toBeTruthy());
 
-    fireEvent.press(screen.getByTestId("diario-save-button"));
+    await fireEvent.press(screen.getByTestId("diario-save-button"));
 
     await waitFor(() =>
       expect(mockedSaveRegistroDiarioHoje).toHaveBeenCalledWith(
@@ -99,7 +99,7 @@ describe("diario sintomas screen", () => {
   });
 
   it("shows an empty state message when there is no history yet", async () => {
-    render(<DiarioSintomasScreen />);
+    await render(<DiarioSintomasScreen />);
 
     await waitFor(() => expect(screen.getByText("Você ainda não tem registros anteriores.")).toBeTruthy());
   });
@@ -113,7 +113,7 @@ describe("diario sintomas screen", () => {
       totalPages: 1,
     });
 
-    render(<DiarioSintomasScreen />);
+    await render(<DiarioSintomasScreen />);
 
     await waitFor(() => expect(screen.getByTestId("diario-history-item-registro-antigo")).toBeTruthy());
     expect(screen.getByText("14 de jul")).toBeTruthy();
@@ -123,7 +123,7 @@ describe("diario sintomas screen", () => {
   it("explains that the diary is restricted to patient accounts", async () => {
     mockedGetRegistroDiarioHoje.mockRejectedValue(new ApiError(403, "Esta funcionalidade é exclusiva de pacientes."));
 
-    render(<DiarioSintomasScreen />);
+    await render(<DiarioSintomasScreen />);
 
     await waitFor(() =>
       expect(screen.getByText("O Diário de sintomas está disponível apenas para contas de pacientes. Entre com uma conta de paciente para continuar.")).toBeTruthy(),
@@ -131,13 +131,13 @@ describe("diario sintomas screen", () => {
   });
 
   it("initializes the recorder only after the patient chooses to record a voice note", async () => {
-    render(<DiarioSintomasScreen />);
+    await render(<DiarioSintomasScreen />);
 
     await waitFor(() => expect(screen.getByTestId("diario-voice-start")).toBeTruthy());
     expect(mockedUseAudioRecorder).not.toHaveBeenCalled();
 
     await act(async () => {
-      fireEvent.press(screen.getByTestId("diario-voice-start"));
+      await fireEvent.press(screen.getByTestId("diario-voice-start"));
       await Promise.resolve();
       await Promise.resolve();
     });

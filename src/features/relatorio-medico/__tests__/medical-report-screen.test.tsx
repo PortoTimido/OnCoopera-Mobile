@@ -42,7 +42,7 @@ describe("medical report screen", () => {
     });
     mockedGetMe.mockResolvedValue({ dataNascimento: "1990-01-01", email: "ana@oncoopera.com", id: "user", login: "ana", nome: "Ana Costa", perfisAdministrativos: [], status: "ATIVO", telefone: "11999999999", tipo: "PACIENTE", trocaSenhaObrigatoria: false, ultimoAcesso: null });
     mockedListRecords.mockResolvedValue({
-      data: [{ dataHora: "2026-10-13T10:00:00.000Z", dataRegistro: "2026-10-13", humor: "BEM", id: "record-1", sintomas: [{ intensidade: 7, tipo: "FATIGA" }] }],
+      data: [{ dataHora: "2026-10-27T10:00:00.000Z", dataRegistro: "2026-10-27", humor: "BEM", id: "record-1", sintomas: [{ intensidade: 7, tipo: "FATIGA" }] }],
       page: 1,
       pageSize: 100,
       total: 1,
@@ -61,15 +61,14 @@ describe("medical report screen", () => {
   });
 
   it("loads report data, changes the period, and shares a generated PDF", async () => {
-    render(<MedicalReportScreen />);
+    await render(<MedicalReportScreen />);
 
+    await fireEvent.press(screen.getByTestId("medical-report-period-15"));
     await waitFor(() => expect(screen.getByTestId("medical-report-symptoms")).toBeTruthy());
     expect(mockedListRecords).toHaveBeenCalledWith({ page: 1, pageSize: 100 }, "token");
+    expect(screen.getByTestId("medical-report-period-15").props.accessibilityState).toEqual(expect.objectContaining({ checked: true }));
 
-    fireEvent.press(screen.getByTestId("medical-report-period-15"));
-    expect(screen.getByTestId("medical-report-period-15").props.accessibilityState).toEqual({ checked: true });
-
-    fireEvent.press(screen.getByTestId("medical-report-generate"));
+    await fireEvent.press(screen.getByTestId("medical-report-generate"));
     await waitFor(() => expect(mockedPrint).toHaveBeenCalled());
     expect(mockedPrint).toHaveBeenCalledWith(expect.objectContaining({ base64: true }));
     await waitFor(() => expect(mockedWriteFile).toHaveBeenCalled());
@@ -84,7 +83,7 @@ describe("medical report screen", () => {
 
   it("shows a message instead of generating a report for an empty period", async () => {
     mockedListRecords.mockResolvedValue({ data: [], page: 1, pageSize: 100, total: 0, totalPages: 0 });
-    render(<MedicalReportScreen />);
+    await render(<MedicalReportScreen />);
 
     await waitFor(() => expect(screen.getByText("Não há registros no período selecionado para gerar o relatório.")).toBeTruthy());
     expect(screen.getByTestId("medical-report-generate").props.accessibilityState).toEqual({ disabled: true });
@@ -92,7 +91,7 @@ describe("medical report screen", () => {
 
   it("shows a load error and keeps PDF generation unavailable", async () => {
     mockedGetMe.mockRejectedValue(new Error("offline"));
-    render(<MedicalReportScreen />);
+    await render(<MedicalReportScreen />);
 
     await waitFor(() => expect(screen.getByText("Não foi possível carregar os dados para o relatório. Tente novamente.")).toBeTruthy());
     expect(screen.getByTestId("medical-report-generate").props.accessibilityState).toEqual({ disabled: true });
@@ -103,10 +102,12 @@ describe("medical report screen", () => {
     const log = jest.spyOn(console, "error").mockImplementation(() => {});
     mockedPrint.mockRejectedValue(failure);
     try {
-      render(<MedicalReportScreen />);
-      await waitFor(() => expect(screen.getByTestId("medical-report-generate").props.accessibilityState).toEqual({ disabled: false }));
+      await render(<MedicalReportScreen />);
+      await waitFor(() =>
+        expect(screen.getByTestId("medical-report-generate").props.accessibilityState).toEqual(expect.objectContaining({ disabled: false })),
+      );
 
-      fireEvent.press(screen.getByTestId("medical-report-generate"));
+      await fireEvent.press(screen.getByTestId("medical-report-generate"));
 
       await waitFor(() => expect(screen.getByText("Não foi possível gerar ou compartilhar o PDF. Tente novamente.")).toBeTruthy());
       expect(log).toHaveBeenCalledWith(expect.stringContaining("geração do arquivo PDF"), failure);

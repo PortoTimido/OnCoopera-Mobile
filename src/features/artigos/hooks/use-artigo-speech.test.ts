@@ -62,7 +62,7 @@ describe("useArtigoSpeech", () => {
   });
 
   it("uses a Brazilian voice and applies rate changes to the next segment", async () => {
-    const { result } = renderHook(() => useArtigoSpeech(artigo));
+    const { result } = await renderHook(() => useArtigoSpeech(artigo));
 
     await waitFor(() => expect(mockedGetAvailableVoices).toHaveBeenCalled());
     await act(async () => result.current.start());
@@ -72,7 +72,7 @@ describe("useArtigoSpeech", () => {
       expect.objectContaining({ language: "pt-BR", rate: 1, voice: "pt-enhanced" }),
     );
 
-    act(() => {
+    await act(() => {
       const options = mockedSpeak.mock.calls[0][1];
       options?.onStart?.();
       result.current.setRate(1.5);
@@ -84,10 +84,10 @@ describe("useArtigoSpeech", () => {
   });
 
   it("pauses, resumes, stops, and cleans up on unmount", async () => {
-    const { result, unmount } = renderHook(() => useArtigoSpeech(artigo));
+    const { result, unmount } = await renderHook(() => useArtigoSpeech(artigo));
 
     await act(async () => result.current.start());
-    act(() => mockedSpeak.mock.calls.at(-1)?.[1]?.onStart?.());
+    await act(() => mockedSpeak.mock.calls.at(-1)?.[1]?.onStart?.());
 
     await act(async () => result.current.pause());
     expect(mockedPause).toHaveBeenCalledTimes(1);
@@ -100,12 +100,12 @@ describe("useArtigoSpeech", () => {
     await act(async () => result.current.stop());
     expect(result.current.status).toBe("idle");
 
-    unmount();
+    await unmount();
     expect(mockedStop).toHaveBeenCalled();
   });
 
   it("does not simulate pause on Android", async () => {
-    const { result } = renderHook(() => useArtigoSpeech(artigo, "android"));
+    const { result } = await renderHook(() => useArtigoSpeech(artigo, "android"));
 
     expect(result.current.canPause).toBe(false);
     await act(async () => result.current.pause());
@@ -114,7 +114,7 @@ describe("useArtigoSpeech", () => {
 
   it("moves to the error state when speech fails", async () => {
     mockedSpeak.mockImplementationOnce((_text, options) => options?.onError?.(new Error("falha")));
-    const { result } = renderHook(() => useArtigoSpeech(artigo));
+    const { result } = await renderHook(() => useArtigoSpeech(artigo));
 
     await act(async () => result.current.start());
 
@@ -123,12 +123,12 @@ describe("useArtigoSpeech", () => {
   });
 
   it("finishes after narrating every segment", async () => {
-    const { result } = renderHook(() => useArtigoSpeech(artigo));
+    const { result } = await renderHook(() => useArtigoSpeech(artigo));
 
     await act(async () => result.current.start());
 
     for (let index = 0; index < 6; index += 1) {
-      act(() => mockedSpeak.mock.calls[index][1]?.onDone?.());
+      await act(() => mockedSpeak.mock.calls[index][1]?.onDone?.());
     }
 
     expect(mockedSpeak).toHaveBeenCalledTimes(6);
@@ -136,7 +136,7 @@ describe("useArtigoSpeech", () => {
   });
 
   it("stops the current speech when another article is opened", async () => {
-    const { rerender, result } = renderHook<
+    const { rerender, result } = await renderHook<
       ReturnType<typeof useArtigoSpeech>,
       { currentArticle: Artigo }
     >(({ currentArticle }) => useArtigoSpeech(currentArticle), {
@@ -144,10 +144,10 @@ describe("useArtigoSpeech", () => {
     });
 
     await act(async () => result.current.start());
-    act(() => mockedSpeak.mock.calls.at(-1)?.[1]?.onStart?.());
+    await act(() => mockedSpeak.mock.calls.at(-1)?.[1]?.onStart?.());
     const callsBeforeArticleChange = mockedStop.mock.calls.length;
 
-    rerender({ currentArticle: { ...artigo, id: "artigo-2", titulo: "Outro título" } });
+    await rerender({ currentArticle: { ...artigo, id: "artigo-2", titulo: "Outro título" } });
 
     expect(mockedStop.mock.calls.length).toBeGreaterThan(callsBeforeArticleChange);
     expect(result.current.status).toBe("idle");

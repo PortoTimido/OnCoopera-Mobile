@@ -1,6 +1,6 @@
 import { CalendarDays } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Modal, type ScrollView as RNScrollView } from "react-native";
+import { Modal, type ScrollViewInstance } from "react-native";
 import { Pressable, ScrollView, Text, View } from "react-native-css/components";
 
 import { AppText } from "@/components/ui";
@@ -66,7 +66,7 @@ type WheelColumnProps = {
 };
 
 function WheelColumn({ items, onSelect, renderLabel, selected }: WheelColumnProps) {
-  const scrollRef = useRef<RNScrollView>(null);
+  const scrollRef = useRef<ScrollViewInstance>(null);
   const initialIndex = Math.max(items.indexOf(selected), 0);
 
   function scrollToValue(value: number, animated: boolean) {

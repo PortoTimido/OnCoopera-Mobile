@@ -49,8 +49,8 @@ describe("home screen", () => {
     setMemorySession(null);
   });
 
-  it("renders home content with authenticated user and Brasilia clock labels", () => {
-    render(<HomeScreen />);
+  it("renders home content with authenticated user and Brasilia clock labels", async () => {
+    await render(<HomeScreen />);
 
     expect(screen.getByTestId("home-screen")).toBeTruthy();
     expect(screen.getByText("In\u00edcio")).toBeTruthy();
@@ -59,7 +59,7 @@ describe("home screen", () => {
     expect(screen.getByText("\ud83c\udf24\ufe0f")).toBeTruthy();
     expect(screen.getByText("Ana")).toBeTruthy();
     expect(screen.queryByText("Maria Silva")).toBeNull();
-    expect(screen.getByLabelText("Configuracoes")).toBeTruthy();
+    expect(screen.getByLabelText("Configurações")).toBeTruthy();
     expect(screen.getAllByText("Diario")).toHaveLength(2);
     expect(screen.getByText("Apoio")).toBeTruthy();
     expect(screen.getByText("Artigos")).toBeTruthy();
@@ -80,17 +80,17 @@ describe("home screen", () => {
     });
   });
 
-  it("shows and dismisses the medical guidance after authentication", () => {
+  it("shows and dismisses the medical guidance after authentication", async () => {
     mockMedicalGuidanceParams = { medicalGuidance: "1" };
 
-    render(<HomeScreen />);
+    await render(<HomeScreen />);
 
     expect(screen.getByTestId("home-medical-guidance-modal")).toBeTruthy();
     expect(screen.getByText("Sempre consulte seu médico")).toBeTruthy();
     expect(screen.getAllByTestId("home-medical-guidance-hospital-icon")).not.toHaveLength(0);
     expect(mockSetParams).toHaveBeenCalledWith({ medicalGuidance: undefined });
 
-    fireEvent.press(screen.getByTestId("home-medical-guidance-confirm"));
+    await fireEvent.press(screen.getByTestId("home-medical-guidance-confirm"));
 
     expect(screen.queryByTestId("home-medical-guidance-modal")).toBeNull();
   });

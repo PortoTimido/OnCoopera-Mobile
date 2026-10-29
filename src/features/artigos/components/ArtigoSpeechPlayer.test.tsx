@@ -24,21 +24,21 @@ describe("ArtigoSpeechPlayer", () => {
     mockedUseArtigoSpeech.mockReturnValue({ canPause: true, error: null, pause, rate: 1, resume, setRate, start, status: "idle", stop });
   });
 
-  it("starts reading and exposes accessible rate controls", () => {
-    render(<ArtigoSpeechPlayer artigo={artigo} />);
+  it("starts reading and exposes accessible rate controls", async () => {
+    await render(<ArtigoSpeechPlayer artigo={artigo} />);
 
-    fireEvent.press(screen.getByLabelText("Iniciar leitura do artigo"));
-    fireEvent.press(screen.getByLabelText("Velocidade 1,25x"));
+    await fireEvent.press(screen.getByLabelText("Iniciar leitura do artigo"));
+    await fireEvent.press(screen.getByLabelText("Velocidade 1,25x"));
 
     expect(start).toHaveBeenCalledTimes(1);
     expect(setRate).toHaveBeenCalledWith(1.25);
     expect(screen.getByLabelText("Velocidade 1x").props.accessibilityState).toEqual({ selected: true });
   });
 
-  it("shows a disabled pause control when the platform cannot pause", () => {
+  it("shows a disabled pause control when the platform cannot pause", async () => {
     mockedUseArtigoSpeech.mockReturnValue({ canPause: false, error: null, pause, rate: 1, resume, setRate, start, status: "speaking", stop });
 
-    render(<ArtigoSpeechPlayer artigo={artigo} />);
+    await render(<ArtigoSpeechPlayer artigo={artigo} />);
 
     expect(screen.getByLabelText("Pausar leitura indisponível no Android").props.accessibilityState).toEqual({ disabled: true });
     expect(screen.getByText("Pausa e retomada não estão disponíveis no Android.")).toBeTruthy();

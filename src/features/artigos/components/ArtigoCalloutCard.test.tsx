@@ -6,8 +6,8 @@ describe("ArtigoCalloutCard", () => {
   it.each([
     ["dica", "Dica", "Prefira alimentos leves."],
     ["pergunta", "Pergunte ao seu médico", "Este consumo é seguro?"],
-  ] as const)("renders the %s callout with its content", (variant, title, content) => {
-    render(<ArtigoCalloutCard html={`<p>${content}</p>`} type="callout" variant={variant} />);
+  ] as const)("renders the %s callout with its content", async (variant, title, content) => {
+    await render(<ArtigoCalloutCard html={`<p>${content}</p>`} type="callout" variant={variant} />);
 
     expect(screen.getByTestId(`artigo-callout-${variant}`)).toBeTruthy();
     expect(screen.getByLabelText(title)).toBeTruthy();

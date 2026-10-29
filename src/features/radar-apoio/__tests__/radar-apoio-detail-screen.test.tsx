@@ -74,10 +74,10 @@ describe("radar apoio detail screen", () => {
     mockedOpenURL.mockResolvedValue(true);
   });
 
-  it("shows a sheet skeleton while loading, without a back button", () => {
+  it("shows a sheet skeleton while loading, without a back button", async () => {
     mockedGetApoioById.mockImplementation(() => new Promise(() => undefined));
 
-    render(<RadarApoioDetailScreen />);
+    await render(<RadarApoioDetailScreen />);
 
     expect(screen.getByTestId("radar-apoio-detail-skeleton")).toBeTruthy();
     expect(screen.getByLabelText("Fechar detalhes do apoio")).toBeTruthy();
@@ -87,16 +87,16 @@ describe("radar apoio detail screen", () => {
   it("shows support information and opens Google Maps directions from the current position", async () => {
     mockedGetApoioById.mockResolvedValue(apoio);
 
-    render(<RadarApoioDetailScreen />);
+    await render(<RadarApoioDetailScreen />);
 
     await waitFor(() => expect(screen.getByText("INCA")).toBeTruthy());
     expect(mockedGetApoioById).toHaveBeenCalledWith("apoio-1");
     expect(screen.getByText("Rua Teste, 35\nCentro, São Paulo - SP")).toBeTruthy();
     expect(screen.getByText("(11) 3000-0000")).toBeTruthy();
     expect(screen.getByTestId("radar-directions-button").props.accessibilityState).toEqual({ disabled: false });
-    fireEvent.press(screen.getByTestId("radar-directions-button"));
+    await fireEvent.press(screen.getByTestId("radar-directions-button"));
     await waitFor(() => expect(screen.getByTestId("radar-map-google")).toBeTruthy());
-    fireEvent.press(screen.getByTestId("radar-map-google"));
+    await fireEvent.press(screen.getByTestId("radar-map-google"));
     await waitFor(() => expect(mockedOpenURL).toHaveBeenCalledWith(Platform.OS === "ios"
       ? "comgooglemaps://?saddr=-23.56%2C-46.64&daddr=-23.55%2C-46.63&directionsmode=driving"
       : "google.navigation:q=-23.55%2C-46.63"));
@@ -104,11 +104,11 @@ describe("radar apoio detail screen", () => {
 
   it("opens Waze navigation for the selected support location", async () => {
     mockedGetApoioById.mockResolvedValue(apoio);
-    render(<RadarApoioDetailScreen />);
+    await render(<RadarApoioDetailScreen />);
     await waitFor(() => expect(screen.getByText("INCA")).toBeTruthy());
-    fireEvent.press(screen.getByTestId("radar-directions-button"));
+    await fireEvent.press(screen.getByTestId("radar-directions-button"));
     await waitFor(() => expect(screen.getByTestId("radar-map-waze")).toBeTruthy());
-    fireEvent.press(screen.getByTestId("radar-map-waze"));
+    await fireEvent.press(screen.getByTestId("radar-map-waze"));
     await waitFor(() => expect(mockedOpenURL).toHaveBeenCalledWith("waze://?ll=-23.55%2C-46.63&navigate=yes"));
   });
 
@@ -118,9 +118,9 @@ describe("radar apoio detail screen", () => {
     jest.mocked(Location.requestForegroundPermissionsAsync).mockResolvedValue({ granted: false, status: "denied" } as never);
     const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
 
-    render(<RadarApoioDetailScreen />);
+    await render(<RadarApoioDetailScreen />);
     await waitFor(() => expect(screen.getByText("INCA")).toBeTruthy());
-    fireEvent.press(screen.getByTestId("radar-directions-button"));
+    await fireEvent.press(screen.getByTestId("radar-directions-button"));
 
     await waitFor(() => expect(alert).toHaveBeenCalledWith("Localização necessária", expect.any(String)));
     expect(screen.queryByTestId("radar-map-choices")).toBeNull();
@@ -128,33 +128,33 @@ describe("radar apoio detail screen", () => {
     alert.mockRestore();
   });
 
-  it("closes through the backdrop, a qualifying downward drag, and Android back", () => {
+  it("closes through the backdrop, a qualifying downward drag, and Android back", async () => {
     mockedGetApoioById.mockImplementation(() => new Promise(() => undefined));
     const backHandler = jest.spyOn(BackHandler, "addEventListener");
 
-    const { unmount } = render(<RadarApoioDetailScreen />);
+    const { unmount } = await render(<RadarApoioDetailScreen />);
     const hardwareBack = backHandler.mock.calls[0][1];
-    fireEvent.press(screen.getByTestId("radar-apoio-detail-backdrop"));
+    await fireEvent.press(screen.getByTestId("radar-apoio-detail-backdrop"));
     expect(require("expo-router").router.back).toHaveBeenCalledTimes(1);
-    unmount();
+    await unmount();
 
     jest.clearAllMocks();
-    render(<RadarApoioDetailScreen />);
-    act(() => mockPanEnd?.({ translationY: 500, velocityY: 0 }));
+    await render(<RadarApoioDetailScreen />);
+    await act(() => mockPanEnd?.({ translationY: 500, velocityY: 0 }));
     expect(require("expo-router").router.back).toHaveBeenCalledTimes(1);
 
     jest.clearAllMocks();
-    render(<RadarApoioDetailScreen />);
+    await render(<RadarApoioDetailScreen />);
     const secondHardwareBack = backHandler.mock.calls.at(-1)?.[1];
-    act(() => secondHardwareBack?.({} as never));
+    await act(() => secondHardwareBack?.({} as never));
     expect(require("expo-router").router.back).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the sheet open after an insufficient drag and displays load errors inside it", async () => {
     mockedGetApoioById.mockRejectedValue(new Error("unavailable"));
 
-    render(<RadarApoioDetailScreen />);
-    act(() => mockPanEnd?.({ translationY: 1, velocityY: 0 }));
+    await render(<RadarApoioDetailScreen />);
+    await act(() => mockPanEnd?.({ translationY: 1, velocityY: 0 }));
     expect(require("expo-router").router.back).not.toHaveBeenCalled();
     await waitFor(() => expect(screen.getByTestId("radar-apoio-detail-error")).toBeTruthy());
   });

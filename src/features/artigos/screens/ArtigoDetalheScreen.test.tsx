@@ -42,8 +42,8 @@ describe("ArtigoDetalheScreen", () => {
     });
   });
 
-  it("renders API summary, HTML, custom callouts and available credits", () => {
-    render(<ArtigoDetalheScreen id="artigo-1" />);
+  it("renders API summary, HTML, custom callouts and available credits", async () => {
+    await render(<ArtigoDetalheScreen id="artigo-1" />);
 
     expect(screen.getByText("Resumo retornado pela API.")).toBeTruthy();
     expect(screen.getByLabelText("Dica")).toBeTruthy();

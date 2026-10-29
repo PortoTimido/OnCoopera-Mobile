@@ -52,25 +52,25 @@ const session: AuthResponse = {
   },
 };
 
-function fillStepOne() {
-  fireEvent.changeText(screen.getByLabelText("Nome completo"), "Maria Silva");
-  fireEvent.changeText(screen.getByLabelText("E-mail"), "maria@oncoopera.com");
-  fireEvent.changeText(screen.getByLabelText("Telefone"), "11999999999");
-  fireEvent.press(screen.getByTestId("cadastro-data-nascimento"));
-  fireEvent.press(screen.getByTestId("cadastro-data-nascimento-confirm"));
-  fireEvent.changeText(screen.getByLabelText("Senha", { exact: true }), "Senha1!");
-  fireEvent.changeText(screen.getByLabelText("Confirmar senha", { exact: true }), "Senha1!");
-  fireEvent.press(screen.getByTestId("cadastro-proximo"));
+async function fillStepOne() {
+  await fireEvent.changeText(screen.getByLabelText("Nome completo"), "Maria Silva");
+  await fireEvent.changeText(screen.getByLabelText("E-mail"), "maria@oncoopera.com");
+  await fireEvent.changeText(screen.getByLabelText("Telefone"), "11999999999");
+  await fireEvent.press(screen.getByTestId("cadastro-data-nascimento"));
+  await fireEvent.press(screen.getByTestId("cadastro-data-nascimento-confirm"));
+  await fireEvent.changeText(screen.getByLabelText("Senha", { exact: true }), "Senha1!");
+  await fireEvent.changeText(screen.getByLabelText("Confirmar senha", { exact: true }), "Senha1!");
+  await fireEvent.press(screen.getByTestId("cadastro-proximo"));
 }
 
 async function fillStepTwo() {
-  fireEvent.changeText(screen.getByLabelText("CEP"), "01001000");
+  await fireEvent.changeText(screen.getByLabelText("CEP"), "01001000");
   await waitFor(() => expect(mockedGetAddressByCep).toHaveBeenCalled());
-  fireEvent.changeText(screen.getByLabelText("UF"), "SP");
-  fireEvent.changeText(screen.getByLabelText("Cidade"), "Sao Paulo");
-  fireEvent.changeText(screen.getByLabelText("Bairro"), "Se");
-  fireEvent.changeText(screen.getByLabelText("Endereco"), "Praca da Se");
-  fireEvent.changeText(screen.getByLabelText("Numero"), "1");
+  await fireEvent.changeText(screen.getByLabelText("UF"), "SP");
+  await fireEvent.changeText(screen.getByLabelText("Cidade"), "Sao Paulo");
+  await fireEvent.changeText(screen.getByLabelText("Bairro"), "Se");
+  await fireEvent.changeText(screen.getByLabelText("Endereco"), "Praca da Se");
+  await fireEvent.changeText(screen.getByLabelText("Numero"), "1");
 }
 
 describe("register screen", () => {
@@ -90,12 +90,12 @@ describe("register screen", () => {
     mockedCreatePatient.mockResolvedValue(session.usuario);
     mockedLogin.mockResolvedValue(session);
 
-    render(<RegisterScreen />);
+    await render(<RegisterScreen />);
 
-    fillStepOne();
+    await fillStepOne();
     await fillStepTwo();
 
-    fireEvent.press(screen.getByTestId("cadastro-submit"));
+    await fireEvent.press(screen.getByTestId("cadastro-submit"));
 
     await waitFor(() => expect(mockedCreatePatient).toHaveBeenCalled());
     await waitFor(() =>
@@ -111,12 +111,12 @@ describe("register screen", () => {
     mockedCreatePatient.mockResolvedValue(session.usuario);
     mockedLogin.mockRejectedValue(new Error("Nao foi possivel entrar."));
 
-    render(<RegisterScreen />);
+    await render(<RegisterScreen />);
 
-    fillStepOne();
+    await fillStepOne();
     await fillStepTwo();
 
-    fireEvent.press(screen.getByTestId("cadastro-submit"));
+    await fireEvent.press(screen.getByTestId("cadastro-submit"));
 
     await waitFor(() => expect(mockedLogin).toHaveBeenCalled());
     expect(mockReplace).not.toHaveBeenCalled();

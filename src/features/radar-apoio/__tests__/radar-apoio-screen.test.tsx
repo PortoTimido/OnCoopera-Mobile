@@ -50,27 +50,28 @@ describe("radar apoio list screen", () => {
   });
 
   it("uses the geocoded city and loads ten supports per page", async () => {
-    render(<RadarApoioListScreen />);
-    await waitFor(() => expect(screen.getByDisplayValue("São Paulo")).toBeTruthy());
-    act(() => jest.runOnlyPendingTimers());
+    mockedLocation.getCurrentPositionAsync.mockRejectedValue(new Error("unavailable"));
+    await render(<RadarApoioListScreen />);
+    await fireEvent.changeText(screen.getByLabelText("Cidade para buscar apoios"), "São Paulo");
+    await fireEvent(screen.getByLabelText("Cidade para buscar apoios"), "blur");
     await waitFor(() => expect(mockedListApoios).toHaveBeenCalledWith(expect.objectContaining({ cidade: "São Paulo", latitude: -23.56, longitude: -46.65, page: 1, pageSize: 10 })));
   });
 
   it("falls back to device coordinates and then the profile address", async () => {
     mockedLocation.geocodeAsync.mockResolvedValue([] as never);
-    render(<RadarApoioListScreen />);
+    await render(<RadarApoioListScreen />);
     await waitFor(() => expect(mockedListApoios).toHaveBeenCalledWith(expect.objectContaining({ latitude: -22, longitude: -43 })));
 
     mockedLocation.getCurrentPositionAsync.mockRejectedValueOnce(new Error("unavailable"));
-    fireEvent.changeText(screen.getByLabelText("Cidade para buscar apoios"), "Rio de Janeiro");
-    fireEvent(screen.getByLabelText("Cidade para buscar apoios"), "blur");
+    await fireEvent.changeText(screen.getByLabelText("Cidade para buscar apoios"), "Rio de Janeiro");
+    await fireEvent(screen.getByLabelText("Cidade para buscar apoios"), "blur");
     await waitFor(() => expect(mockedListApoios).toHaveBeenLastCalledWith(expect.objectContaining({ cidade: "Rio de Janeiro", latitude: -23, longitude: -46 })));
   });
 
   it("keeps the listing available when no reference coordinate is available", async () => {
     mockedGetPatientProfile.mockResolvedValueOnce({ endereco: undefined, usuario: {} as never } as never);
     mockedLocation.getForegroundPermissionsAsync.mockResolvedValueOnce({ status: "denied" } as never);
-    render(<RadarApoioListScreen />);
+    await render(<RadarApoioListScreen />);
     await waitFor(() => expect(screen.getByText(/Informe uma cidade válida/)).toBeTruthy());
     expect(mockedListApoios).not.toHaveBeenCalled();
   });
@@ -78,10 +79,10 @@ describe("radar apoio list screen", () => {
   it("loads the next page once when the list reaches its end", async () => {
     mockedListApoios.mockResolvedValueOnce({ data: [apoio], page: 1, pageSize: 10, total: 11, totalPages: 2 });
     mockedListApoios.mockResolvedValueOnce({ data: [{ ...apoio, id: "apoio-2", nome: "Clínica" }], page: 2, pageSize: 10, total: 11, totalPages: 2 });
-    render(<RadarApoioListScreen />);
+    await render(<RadarApoioListScreen />);
     await waitFor(() => expect(screen.getByLabelText("Abrir Casa de Apoio")).toBeTruthy());
-    fireEvent(screen.getByTestId("radar-apoio-list"), "onEndReached");
-    fireEvent(screen.getByTestId("radar-apoio-list"), "onEndReached");
+    await fireEvent(screen.getByTestId("radar-apoio-list"), "onEndReached");
+    await fireEvent(screen.getByTestId("radar-apoio-list"), "onEndReached");
     await waitFor(() => expect(mockedListApoios).toHaveBeenCalledWith(expect.objectContaining({ page: 2, pageSize: 10 })));
     expect(mockedListApoios).toHaveBeenCalledTimes(2);
     await waitFor(() => expect(screen.getByLabelText("Abrir Clínica")).toBeTruthy());
