@@ -19,9 +19,15 @@ type AppTextProps = ComponentProps<typeof Text> & {
   variant?: TextVariant;
 };
 
+export function getAppTextClassName(variant: TextVariant, className?: string) {
+  const isDisplayFont = variant === "display" || variant === "title";
+
+  return cn(variantClasses[variant], className, isDisplayFont && "font-display");
+}
+
 export function AppText({ children, className, variant = "body", ...props }: AppTextProps) {
   return (
-    <Text className={cn(variantClasses[variant], className)} {...props}>
+    <Text className={getAppTextClassName(variant, className)} {...props}>
       {children}
     </Text>
   );

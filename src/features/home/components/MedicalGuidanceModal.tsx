@@ -33,7 +33,7 @@ export function MedicalGuidanceModal({ onClose, visible }: MedicalGuidanceModalP
 
       <AppText
         accessibilityRole="header"
-        className="text-center font-sans-bold text-[28px] leading-[34px] text-brand-primary"
+        className="text-center text-[28px] leading-[34px] text-brand-primary"
         variant="title"
       >
         Sempre consulte seu médico
