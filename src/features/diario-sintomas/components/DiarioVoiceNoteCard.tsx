@@ -1,7 +1,11 @@
-import { useAudioPlayer, useAudioPlayerStatus, type AudioSource } from "expo-audio";
+import {
+  useAudioPlayer,
+  useAudioPlayerStatus,
+  type AudioSource,
+} from "expo-audio";
 import { Mic, Pause, Play, Square, Trash2 } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Easing } from "react-native";
+import { Animated, Easing, Platform } from "react-native";
 import { Pressable, Text, View } from "react-native-css/components";
 
 import { AppText, FormMessage } from "@/components/ui";
@@ -10,12 +14,19 @@ import { nativePropColors } from "@/lib/design/native-prop-colors";
 
 import { formatRecordingDuration } from "../diario-sintomas-formatters";
 import { useVoiceRecorder } from "../hooks/use-voice-recorder";
+import { useProtectedVoiceNoteSource } from "../use-protected-voice-note-source";
+import {
+  useVoiceNotePlaybackDiagnostics,
+  type VoiceNotePlaybackMode,
+} from "../voice-note-diagnostics";
 import { toggleVoiceNotePlayback } from "../voice-note-playback";
 
 type DiarioVoiceNoteCardProps = {
   existingSource: AudioSource | null;
   onRemoveExisting: () => void;
-  onRecordingChange: (recording: { durationMillis: number; size: number; uri: string } | null) => void;
+  onRecordingChange: (
+    recording: { durationMillis: number; size: number; uri: string } | null,
+  ) => void;
   recording: { durationMillis: number; size: number; uri: string } | null;
 };
 
@@ -25,8 +36,17 @@ function RecordingPulse() {
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(scale, { duration: 700, easing: Easing.out(Easing.ease), toValue: 1.6, useNativeDriver: true }),
-        Animated.timing(scale, { duration: 0, toValue: 1, useNativeDriver: true }),
+        Animated.timing(scale, {
+          duration: 700,
+          easing: Easing.out(Easing.ease),
+          toValue: 1.6,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scale, {
+          duration: 0,
+          toValue: 1,
+          useNativeDriver: true,
+        }),
       ]),
     );
     loop.start();
@@ -54,7 +74,11 @@ type VoiceNoteIdleProps = {
   permissionDenied: boolean;
 };
 
-function VoiceNoteIdle({ error, onStart, permissionDenied }: VoiceNoteIdleProps) {
+function VoiceNoteIdle({
+  error,
+  onStart,
+  permissionDenied,
+}: VoiceNoteIdleProps) {
   return (
     <View className="gap-2" testID="diario-voice-idle">
       <Pressable
@@ -71,7 +95,10 @@ function VoiceNoteIdle({ error, onStart, permissionDenied }: VoiceNoteIdleProps)
           <Mic color={nativePropColors.white} size={22} strokeWidth={2.2} />
         </View>
         <View className="flex-1 gap-0.5">
-          <AppText className="text-[15px] leading-[20px] text-feedback-danger" variant="subtitle">
+          <AppText
+            className="text-[15px] leading-[20px] text-feedback-danger"
+            variant="subtitle"
+          >
             Nota de voz
           </AppText>
           <Text className="font-sans text-[13px] leading-[18px] text-feedback-danger/80">
@@ -81,40 +108,88 @@ function VoiceNoteIdle({ error, onStart, permissionDenied }: VoiceNoteIdleProps)
       </Pressable>
 
       {permissionDenied ? (
-        <FormMessage message="Permita o acesso ao microfone nas configurações do dispositivo para gravar uma nota de voz." tone="warning" />
+        <FormMessage
+          message="Permita o acesso ao microfone nas configurações do dispositivo para gravar uma nota de voz."
+          tone="warning"
+        />
       ) : null}
       {error ? <FormMessage message={error} tone="error" /> : null}
     </View>
   );
 }
 
-function VoiceNotePlayback({ durationMillis, onRemove, source }: { durationMillis: number; onRemove: () => void; source: AudioSource }) {
-  const player = useAudioPlayer(source);
+function VoiceNotePlayback({
+  durationMillis,
+  onRemove,
+  source,
+}: {
+  durationMillis: number;
+  onRemove: () => void;
+  source: AudioSource;
+}) {
+  const [diagnosticMode, setDiagnosticMode] =
+    useState<VoiceNotePlaybackMode>("remote");
+  const protectedSource = useProtectedVoiceNoteSource(source);
+  const player = useAudioPlayer(protectedSource.source, {
+    downloadFirst: __DEV__ && diagnosticMode === "downloadFirst",
+  });
   const playerStatus = useAudioPlayerStatus(player);
+  useVoiceNotePlaybackDiagnostics(playerStatus, "today", diagnosticMode);
+  const playbackError =
+    protectedSource.error ??
+    (playerStatus.error
+      ? "Não foi possível reproduzir a nota de voz. Tente novamente."
+      : null);
 
   return (
-    <View className="gap-3 rounded-home-card border-2 border-feedback-danger/20 bg-feedback-danger-soft p-5" testID="diario-voice-recorded">
+    <View
+      className="gap-3 rounded-home-card border-2 border-feedback-danger/20 bg-feedback-danger-soft p-5"
+      testID="diario-voice-recorded"
+    >
       <View className="flex-row items-center gap-4">
         <Pressable
-          accessibilityLabel={playerStatus.playing ? "Pausar nota de voz" : "Reproduzir nota de voz"}
+          accessibilityLabel={
+            playerStatus.playing
+              ? "Pausar nota de voz"
+              : "Reproduzir nota de voz"
+          }
           accessibilityRole="button"
+          accessibilityState={{
+            disabled: protectedSource.isLoading || !protectedSource.source,
+          }}
           className="size-12 items-center justify-center rounded-pill bg-feedback-danger"
+          disabled={protectedSource.isLoading || !protectedSource.source}
           onPress={() => void toggleVoiceNotePlayback(player, playerStatus)}
           testID="diario-voice-play"
         >
           {playerStatus.playing ? (
-            <Pause color={nativePropColors.white} fill={nativePropColors.white} size={18} />
+            <Pause
+              color={nativePropColors.white}
+              fill={nativePropColors.white}
+              size={18}
+            />
           ) : (
-            <Play color={nativePropColors.white} fill={nativePropColors.white} size={18} />
+            <Play
+              color={nativePropColors.white}
+              fill={nativePropColors.white}
+              size={18}
+            />
           )}
         </Pressable>
 
         <View className="flex-1">
-          <AppText className="text-[15px] leading-[20px] text-feedback-danger" variant="subtitle">
+          <AppText
+            className="text-[15px] leading-[20px] text-feedback-danger"
+            variant="subtitle"
+          >
             Nota de voz
           </AppText>
           <Text className="font-sans text-[13px] leading-[17px] text-feedback-danger/80">
-            {formatRecordingDuration((playerStatus.duration || durationMillis / 1000) * 1000)}
+            {protectedSource.isLoading
+              ? "Carregando nota de voz..."
+              : formatRecordingDuration(
+                  (playerStatus.duration || durationMillis / 1000) * 1000,
+                )}
           </Text>
         </View>
 
@@ -128,6 +203,31 @@ function VoiceNotePlayback({ durationMillis, onRemove, source }: { durationMilli
           <Trash2 color={nativePropColors.danger} size={18} strokeWidth={2.2} />
         </Pressable>
       </View>
+      {playbackError ? (
+        <FormMessage message={playbackError} tone="error" />
+      ) : null}
+      {__DEV__ &&
+      Platform.OS === "ios" &&
+      protectedSource.source &&
+      typeof protectedSource.source === "object" &&
+      "headers" in protectedSource.source ? (
+        <Pressable
+          accessibilityLabel="Alternar diagnóstico de downloadFirst da nota de voz"
+          accessibilityRole="button"
+          className="items-center rounded-pill border border-feedback-danger/30 py-2"
+          onPress={() =>
+            setDiagnosticMode((current) =>
+              current === "remote" ? "downloadFirst" : "remote",
+            )
+          }
+          testID="diario-voice-diagnostic-mode"
+        >
+          <Text className="font-sans text-[12px] text-feedback-danger">
+            Diagnóstico:{" "}
+            {diagnosticMode === "remote" ? "remoto" : "downloadFirst"}
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
@@ -138,7 +238,11 @@ function VoiceNoteRecorder({
   onUnavailable,
 }: {
   onCancel: () => void;
-  onComplete: (recording: { durationMillis: number; size: number; uri: string }) => void;
+  onComplete: (recording: {
+    durationMillis: number;
+    size: number;
+    uri: string;
+  }) => void;
   onUnavailable: (error: string | null, permissionDenied: boolean) => void;
 }) {
   const recorder = useVoiceRecorder();
@@ -162,16 +266,27 @@ function VoiceNoteRecorder({
   };
 
   return (
-    <View className="gap-4 rounded-home-card border-2 border-feedback-danger/30 bg-feedback-danger-soft p-5" testID="diario-voice-recording">
+    <View
+      className="gap-4 rounded-home-card border-2 border-feedback-danger/30 bg-feedback-danger-soft p-5"
+      testID="diario-voice-recording"
+    >
       <View className="flex-row items-center gap-3">
         <View className="size-6 items-center justify-center">
           {recorder.status === "recording" ? <RecordingPulse /> : null}
           <View className="size-2.5 rounded-pill bg-feedback-danger" />
         </View>
-        <AppText className="flex-1 text-[15px] leading-[20px] text-feedback-danger" variant="subtitle">
-          {recorder.status === "recording" ? "Gravando nota de voz..." : "Preparando gravação..."}
+        <AppText
+          className="flex-1 text-[15px] leading-[20px] text-feedback-danger"
+          variant="subtitle"
+        >
+          {recorder.status === "recording"
+            ? "Gravando nota de voz..."
+            : "Preparando gravação..."}
         </AppText>
-        <Text className="font-sans-bold text-[16px] text-feedback-danger" testID="diario-voice-duration">
+        <Text
+          className="font-sans-bold text-[16px] text-feedback-danger"
+          testID="diario-voice-duration"
+        >
           {formatRecordingDuration(recorder.durationMillis)}
         </Text>
       </View>
@@ -191,13 +306,27 @@ function VoiceNoteRecorder({
         </Pressable>
 
         <Pressable
-          accessibilityLabel={recorder.status === "recording" ? "Pausar gravação" : "Retomar gravação"}
+          accessibilityLabel={
+            recorder.status === "recording"
+              ? "Pausar gravação"
+              : "Retomar gravação"
+          }
           accessibilityRole="button"
           className="size-14 items-center justify-center rounded-pill bg-feedback-danger"
-          onPress={recorder.status === "recording" ? recorder.pause : recorder.resume}
+          onPress={
+            recorder.status === "recording" ? recorder.pause : recorder.resume
+          }
           testID="diario-voice-pause-resume"
         >
-          {recorder.status === "recording" ? <Pause color={nativePropColors.white} fill={nativePropColors.white} size={22} /> : <Mic color={nativePropColors.white} size={22} />}
+          {recorder.status === "recording" ? (
+            <Pause
+              color={nativePropColors.white}
+              fill={nativePropColors.white}
+              size={22}
+            />
+          ) : (
+            <Mic color={nativePropColors.white} size={22} />
+          )}
         </Pressable>
 
         <Pressable
@@ -207,14 +336,23 @@ function VoiceNoteRecorder({
           onPress={() => void finish()}
           testID="diario-voice-finish"
         >
-          <Square color={nativePropColors.brandPrimary} fill={nativePropColors.brandPrimary} size={16} />
+          <Square
+            color={nativePropColors.brandPrimary}
+            fill={nativePropColors.brandPrimary}
+            size={16}
+          />
         </Pressable>
       </View>
     </View>
   );
 }
 
-export function DiarioVoiceNoteCard({ existingSource, onRemoveExisting, onRecordingChange, recording }: DiarioVoiceNoteCardProps) {
+export function DiarioVoiceNoteCard({
+  existingSource,
+  onRemoveExisting,
+  onRecordingChange,
+  recording,
+}: DiarioVoiceNoteCardProps) {
   const [isRecorderOpen, setIsRecorderOpen] = useState(false);
   const [recorderError, setRecorderError] = useState<string | null>(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -246,9 +384,21 @@ export function DiarioVoiceNoteCard({ existingSource, onRemoveExisting, onRecord
   if (recording) {
     return (
       <View className="gap-3">
-        <VoiceNotePlayback durationMillis={recording.durationMillis} onRemove={() => onRecordingChange(null)} source={recording.uri} />
-        <Pressable accessibilityLabel="Regravar nota de voz" accessibilityRole="button" className="items-center rounded-pill border border-feedback-danger/30 py-2" onPress={openRecorder} testID="diario-voice-rerecord">
-          <Text className="font-sans-bold text-[13px] text-feedback-danger">Regravar</Text>
+        <VoiceNotePlayback
+          durationMillis={recording.durationMillis}
+          onRemove={() => onRecordingChange(null)}
+          source={recording.uri}
+        />
+        <Pressable
+          accessibilityLabel="Regravar nota de voz"
+          accessibilityRole="button"
+          className="items-center rounded-pill border border-feedback-danger/30 py-2"
+          onPress={openRecorder}
+          testID="diario-voice-rerecord"
+        >
+          <Text className="font-sans-bold text-[13px] text-feedback-danger">
+            Regravar
+          </Text>
         </Pressable>
       </View>
     );
@@ -257,13 +407,31 @@ export function DiarioVoiceNoteCard({ existingSource, onRemoveExisting, onRecord
   if (existingSource) {
     return (
       <View className="gap-3">
-        <VoiceNotePlayback durationMillis={0} onRemove={onRemoveExisting} source={existingSource} />
-        <Pressable accessibilityLabel="Regravar nota de voz" accessibilityRole="button" className="items-center rounded-pill border border-feedback-danger/30 py-2" onPress={openRecorder} testID="diario-voice-rerecord">
-          <Text className="font-sans-bold text-[13px] text-feedback-danger">Regravar</Text>
+        <VoiceNotePlayback
+          durationMillis={0}
+          onRemove={onRemoveExisting}
+          source={existingSource}
+        />
+        <Pressable
+          accessibilityLabel="Regravar nota de voz"
+          accessibilityRole="button"
+          className="items-center rounded-pill border border-feedback-danger/30 py-2"
+          onPress={openRecorder}
+          testID="diario-voice-rerecord"
+        >
+          <Text className="font-sans-bold text-[13px] text-feedback-danger">
+            Regravar
+          </Text>
         </Pressable>
       </View>
     );
   }
 
-  return <VoiceNoteIdle error={recorderError} onStart={openRecorder} permissionDenied={permissionDenied} />;
+  return (
+    <VoiceNoteIdle
+      error={recorderError}
+      onStart={openRecorder}
+      permissionDenied={permissionDenied}
+    />
+  );
 }

@@ -1,25 +1,51 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react-native";
+import { useAudioPlayer } from "expo-audio";
 
 import { DiarioRegistroDetailScreen } from "@/features/diario-sintomas/screens/DiarioRegistroDetailScreen";
-import { buildNotaVozSource, getRegistroDiarioById } from "@/lib/api/diario-sintomas";
+import {
+  buildNotaVozSource,
+  getRegistroDiarioById,
+} from "@/lib/api/diario-sintomas";
 
 const mockPlayAudio = jest.fn();
 const mockPauseAudio = jest.fn();
 
-jest.mock("expo-router", () => ({ router: { back: jest.fn() }, useLocalSearchParams: () => ({ id: "registro-1" }) }));
+jest.mock("expo-router", () => ({
+  router: { back: jest.fn() },
+  useLocalSearchParams: () => ({ id: "registro-1" }),
+}));
 jest.mock("@/lib/api/diario-sintomas", () => ({
   buildNotaVozSource: jest.fn(),
   getRegistroDiarioById: jest.fn(),
 }));
-jest.mock("@/lib/auth/session", () => ({ getAccessToken: jest.fn(async () => "token") }));
+jest.mock("@/lib/auth/session", () => ({
+  getAccessToken: jest.fn(async () => "token"),
+}));
 jest.mock("expo-audio", () => ({
-  useAudioPlayer: () => ({ pause: mockPauseAudio, play: mockPlayAudio }),
+  useAudioPlayer: jest.fn(() => ({
+    pause: mockPauseAudio,
+    play: mockPlayAudio,
+  })),
   useAudioPlayerStatus: () => ({ duration: 0, playing: false }),
 }));
-jest.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ bottom: 0, left: 0, right: 0, top: 0 }) }));
+jest.mock("react-native-safe-area-context", () => ({
+  useSafeAreaInsets: () => ({ bottom: 0, left: 0, right: 0, top: 0 }),
+}));
 jest.mock("react-native-gesture-handler", () => {
-  const gesture = { activeOffsetY: () => gesture, onEnd: () => gesture, onUpdate: () => gesture };
-  return { Gesture: { Pan: () => gesture }, GestureDetector: ({ children }: { children: React.ReactNode }) => children };
+  const gesture = {
+    activeOffsetY: () => gesture,
+    onEnd: () => gesture,
+    onUpdate: () => gesture,
+  };
+  return {
+    Gesture: { Pan: () => gesture },
+    GestureDetector: ({ children }: { children: React.ReactNode }) => children,
+  };
 });
 jest.mock("react-native-reanimated", () => {
   const { View } = require("react-native");
@@ -30,7 +56,11 @@ jest.mock("react-native-reanimated", () => {
     useAnimatedStyle: (callback: () => object) => callback(),
     useSharedValue: (value: number) => ({ value }),
     withSpring: (value: number) => value,
-    withTiming: (value: number, _config?: object, callback?: (finished: boolean) => void) => {
+    withTiming: (
+      value: number,
+      _config?: object,
+      callback?: (finished: boolean) => void,
+    ) => {
       callback?.(true);
       return value;
     },
@@ -52,10 +82,14 @@ describe("diary record detail sheet", () => {
 
     await render(<DiarioRegistroDetailScreen />);
 
-    await waitFor(() => expect(screen.getByText("Domingo, 14 de jul")).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByText("Domingo, 14 de jul")).toBeTruthy(),
+    );
     expect(screen.getByText("Febre")).toBeTruthy();
     expect(screen.queryByTestId("diario-detail-play-nota-voz")).toBeNull();
-    await fireEvent.press(screen.getByTestId("diario-registro-detail-backdrop"));
+    await fireEvent.press(
+      screen.getByTestId("diario-registro-detail-backdrop"),
+    );
     expect(require("expo-router").router.back).toHaveBeenCalledTimes(1);
   });
 
@@ -76,8 +110,28 @@ describe("diary record detail sheet", () => {
     await render(<DiarioRegistroDetailScreen />);
 
     const playButton = await screen.findByTestId("diario-detail-play-nota-voz");
-    expect(jest.mocked(buildNotaVozSource)).toHaveBeenCalledWith("registro-1", "token");
+    expect(jest.mocked(buildNotaVozSource)).toHaveBeenCalledWith(
+      "registro-1",
+      "token",
+    );
     await fireEvent.press(playButton);
     expect(mockPlayAudio).toHaveBeenCalledTimes(1);
+
+    const diagnosticButton = screen.getByTestId(
+      "diario-detail-diagnostic-mode",
+    );
+    expect(jest.mocked(useAudioPlayer)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        uri: "https://example.com/registro-1/nota-voz",
+      }),
+      { downloadFirst: false },
+    );
+    await fireEvent.press(diagnosticButton);
+    expect(jest.mocked(useAudioPlayer)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        uri: "https://example.com/registro-1/nota-voz",
+      }),
+      { downloadFirst: true },
+    );
   });
 });
