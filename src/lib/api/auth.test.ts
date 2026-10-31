@@ -1,4 +1,12 @@
-import { changePassword, changeTemporaryPassword, login, updatePatientProfile } from "@/lib/api/auth";
+import {
+  changePassword,
+  changeTemporaryPassword,
+  login,
+  requestPatientPasswordRecovery,
+  resetPatientPasswordWithRecoveryToken,
+  updatePatientProfile,
+  verifyPatientPasswordRecoveryCode,
+} from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 
 function mockResponse(status: number, body?: unknown) {
@@ -137,5 +145,60 @@ describe("auth api", () => {
     await expect(
       changePassword({ novaSenha: "SenhaNova!1234", senhaAtual: "errada" }, "access-token"),
     ).rejects.toMatchObject({ message: "Senha atual incorreta.", status } satisfies Partial<ApiError>);
+  });
+
+  it("requests a patient recovery code", async () => {
+    const payload = { message: "Se o e-mail estiver cadastrado, você receberá as instruções para redefinir sua senha." };
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce(await mockResponse(200, payload));
+
+    await expect(requestPatientPasswordRecovery({ email: "paciente@oncoopera.com" })).resolves.toEqual(payload);
+
+    const [url, options] = (globalThis.fetch as jest.Mock).mock.calls[0];
+    expect(url).toBe("http://localhost:3000/api/auth/password-recovery/patient/request");
+    expect(options.method).toBe("POST");
+    expect(JSON.parse(options.body)).toEqual({ email: "paciente@oncoopera.com" });
+  });
+
+  it("validates a patient recovery code and returns its reset token", async () => {
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce(await mockResponse(200, { resetToken: "reset-token" }));
+
+    await expect(
+      verifyPatientPasswordRecoveryCode({ code: "483921", email: "paciente@oncoopera.com" }),
+    ).resolves.toEqual({ resetToken: "reset-token" });
+
+    const [url, options] = (globalThis.fetch as jest.Mock).mock.calls[0];
+    expect(url).toBe("http://localhost:3000/api/auth/password-recovery/patient/verify");
+    expect(JSON.parse(options.body)).toEqual({ code: "483921", email: "paciente@oncoopera.com" });
+  });
+
+  it("resets a patient password with a recovery token", async () => {
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce(await mockResponse(204));
+
+    await expect(
+      resetPatientPasswordWithRecoveryToken({
+        newPassword: "SenhaNova!123",
+        passwordConfirmation: "SenhaNova!123",
+        resetToken: "reset-token",
+      }),
+    ).resolves.toBeUndefined();
+
+    const [url, options] = (globalThis.fetch as jest.Mock).mock.calls[0];
+    expect(url).toBe("http://localhost:3000/api/auth/password-recovery/patient/reset");
+    expect(JSON.parse(options.body)).toEqual({
+      newPassword: "SenhaNova!123",
+      passwordConfirmation: "SenhaNova!123",
+      resetToken: "reset-token",
+    });
+  });
+
+  it("surfaces patient recovery errors", async () => {
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce(
+      await mockResponse(403, { message: "A recuperação de senha está disponível apenas para pacientes." }),
+    );
+
+    await expect(requestPatientPasswordRecovery({ email: "admin@oncoopera.com" })).rejects.toMatchObject({
+      message: "A recuperação de senha está disponível apenas para pacientes.",
+      status: 403,
+    } satisfies Partial<ApiError>);
   });
 });

@@ -5,6 +5,7 @@ import {
   passwordRules,
   validateEmailRequest,
   validateLogin,
+  validatePasswordRecoveryCode,
   validateRegister,
   validateRegisterStepOne,
   validateRegisterStepTwo,
@@ -25,6 +26,13 @@ describe("auth validation", () => {
     expect(validateEmailRequest("")).toBe("Campo obrigatorio.");
     expect(validateEmailRequest("email-invalido")).toBe("Informe um e-mail valido.");
     expect(validateEmailRequest("paciente@oncoopera.com")).toBeUndefined();
+  });
+
+  it("validates a six-digit password recovery code", () => {
+    expect(validatePasswordRecoveryCode("")).toBe("Informe o código de 6 dígitos.");
+    expect(validatePasswordRecoveryCode("12345")).toBe("Informe o código de 6 dígitos.");
+    expect(validatePasswordRecoveryCode("12345a")).toBe("Informe o código de 6 dígitos.");
+    expect(validatePasswordRecoveryCode("483921")).toBeUndefined();
   });
 
   it("enforces password policy rules", () => {

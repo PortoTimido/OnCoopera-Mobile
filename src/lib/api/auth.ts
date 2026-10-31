@@ -80,6 +80,24 @@ export type ChangePasswordRequest = {
   senhaAtual: string;
 };
 
+export type PasswordRecoveryRequest = {
+  email: string;
+};
+
+export type PasswordRecoveryVerifyRequest = PasswordRecoveryRequest & {
+  code: string;
+};
+
+export type PasswordRecoveryVerifyResponse = {
+  resetToken: string;
+};
+
+export type PasswordRecoveryResetRequest = {
+  newPassword: string;
+  passwordConfirmation: string;
+  resetToken: string;
+};
+
 export function login(payload: LoginRequest) {
   return apiRequest<AuthResponse>("/auth/login", {
     body: payload,
@@ -142,6 +160,27 @@ export function changePassword(payload: ChangePasswordRequest, accessToken: stri
     body: payload,
     method: "POST",
     token: accessToken,
+  });
+}
+
+export function requestPatientPasswordRecovery(payload: PasswordRecoveryRequest) {
+  return apiRequest<{ message: string }>("/auth/password-recovery/patient/request", {
+    body: payload,
+    method: "POST",
+  });
+}
+
+export function verifyPatientPasswordRecoveryCode(payload: PasswordRecoveryVerifyRequest) {
+  return apiRequest<PasswordRecoveryVerifyResponse>("/auth/password-recovery/patient/verify", {
+    body: payload,
+    method: "POST",
+  });
+}
+
+export function resetPatientPasswordWithRecoveryToken(payload: PasswordRecoveryResetRequest) {
+  return apiRequest<void>("/auth/password-recovery/patient/reset", {
+    body: payload,
+    method: "POST",
   });
 }
 

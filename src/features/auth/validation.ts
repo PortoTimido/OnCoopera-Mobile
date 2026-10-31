@@ -105,6 +105,14 @@ export function validateEmailRequest(email: string) {
   return undefined;
 }
 
+export function validatePasswordRecoveryCode(code: string) {
+  if (!/^\d{6}$/.test(code)) {
+    return "Informe o código de 6 dígitos.";
+  }
+
+  return undefined;
+}
+
 export function validateResetPassword(values: ResetPasswordFormValues) {
   const errors: FieldErrors<ResetPasswordFormValues> = {};
 
