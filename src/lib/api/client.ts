@@ -6,7 +6,7 @@ const LOCAL_API_PATH = "/api";
 const LOCAL_API_PORT = 3000;
 const WEB_DEFAULT_API_URL = `http://localhost:${LOCAL_API_PORT}${LOCAL_API_PATH}`;
 const NETWORK_ERROR_MESSAGE =
-  "Nao foi possivel conectar a API. Verifique se o backend esta rodando e se o celular esta na mesma rede do computador.";
+  "Não foi possível conectar à API. Verifique se o backend está rodando e se o celular está na mesma rede do computador.";
 
 export type ApiErrorBody = {
   error?: string;
@@ -206,7 +206,7 @@ export async function apiRequest<TResponse>(path: string, options: ApiRequestOpt
 
   if (!response.ok) {
     const body = (await parseJsonSafely(response)) as ApiErrorBody | undefined;
-    throw new ApiError(response.status, getErrorMessage(body, "Nao foi possivel concluir a solicitacao."), body);
+    throw new ApiError(response.status, getErrorMessage(body, "Não foi possível concluir a solicitação."), body);
   }
 
   if (response.status === 204) {

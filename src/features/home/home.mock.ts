@@ -1,12 +1,12 @@
 export const homeMock = {
   prompt: {
-    body: "Registrar seus sintomas ajuda sua equipe medica a cuidar melhor de voce.",
+    body: "Registrar seus sintomas ajuda sua equipe médica a cuidar melhor de você.",
     cta: "Registrar agora",
-    title: "Como voce esta hoje?",
+    title: "Como você está hoje?",
   },
-  reportCta: "Gerar relatorio medico",
+  reportCta: "Gerar relatório médico",
   shortcuts: [
-    { id: "diary", label: "Diario", tone: "gold" },
+    { id: "diary", label: "Diário", tone: "gold" },
     { id: "support", label: "Apoio", tone: "blue" },
     { id: "articles", label: "Artigos", tone: "lavender" },
   ],

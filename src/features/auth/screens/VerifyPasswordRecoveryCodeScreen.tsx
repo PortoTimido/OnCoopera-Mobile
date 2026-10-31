@@ -53,7 +53,7 @@ export function VerifyPasswordRecoveryCodeScreen() {
       router.push("/redefinir-senha");
     } catch (submitError) {
       setFeedback({
-        message: getSubmitErrorMessage(submitError, "Nao foi possivel validar o código agora."),
+        message: getSubmitErrorMessage(submitError, "Não foi possível validar o código agora."),
         tone: "error",
       });
     } finally {
@@ -74,7 +74,7 @@ export function VerifyPasswordRecoveryCodeScreen() {
       });
     } catch (submitError) {
       setFeedback({
-        message: getSubmitErrorMessage(submitError, "Nao foi possivel reenviar o código agora."),
+        message: getSubmitErrorMessage(submitError, "Não foi possível reenviar o código agora."),
         tone: "error",
       });
     } finally {

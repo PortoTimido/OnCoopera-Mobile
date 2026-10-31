@@ -35,7 +35,7 @@ export function ForgotPasswordScreen() {
       startRecovery(normalizedEmail);
       router.push("/verificar-codigo-recuperacao");
     } catch (submitError) {
-      setMessage(getSubmitErrorMessage(submitError, "Nao foi possivel enviar o código agora."));
+      setMessage(getSubmitErrorMessage(submitError, "Não foi possível enviar o código agora."));
     } finally {
       setLoading(false);
     }
@@ -43,7 +43,7 @@ export function ForgotPasswordScreen() {
 
   return (
     <AuthShell testID="esqueci-senha-screen">
-      <AuthHeader subtitle="Informe seu e-mail para preparar a recuperacao." title="Esqueci minha senha" />
+      <AuthHeader subtitle="Informe seu e-mail para preparar a recuperação." title="Esqueci minha senha" />
 
       <AuthCard>
         <FormMessage

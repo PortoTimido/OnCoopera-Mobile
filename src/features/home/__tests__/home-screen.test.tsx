@@ -60,13 +60,13 @@ describe("home screen", () => {
     expect(screen.getByText("Ana")).toBeTruthy();
     expect(screen.queryByText("Maria Silva")).toBeNull();
     expect(screen.getByLabelText("Configurações")).toBeTruthy();
-    expect(screen.getAllByText("Diario")).toHaveLength(2);
+    expect(screen.getAllByText("Diário")).toHaveLength(2);
     expect(screen.getByText("Apoio")).toBeTruthy();
     expect(screen.getByText("Artigos")).toBeTruthy();
-    expect(screen.getByText("Como voce esta hoje?")).toBeTruthy();
+    expect(screen.getByText("Como você está hoje?")).toBeTruthy();
     expect(screen.queryByText("Dr. Rafael Souza")).toBeNull();
     expect(screen.queryByText("PROXIMA CONSULTA")).toBeNull();
-    expect(screen.getByText("Gerar relatorio medico")).toBeTruthy();
+    expect(screen.getByText("Gerar relatório médico")).toBeTruthy();
     expect(screen.getByTestId("home-medical-guidance-notice")).toBeTruthy();
     expect(screen.getByText(/As informações disponibilizadas pelo OnCoopera/)).toBeTruthy();
     expect(screen.queryByTestId("home-medical-guidance-modal")).toBeNull();

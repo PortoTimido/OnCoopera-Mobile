@@ -79,10 +79,10 @@ export function RegisterStepOneForm({ errors, goToNextStep, setFieldError, updat
         value={values.confirmarSenha}
       />
 
-      <AuthButton onPress={goToNextStep} testID="cadastro-proximo" title="Proximo" />
+      <AuthButton onPress={goToNextStep} testID="cadastro-proximo" title="Próximo" />
 
       <View className="items-center">
-        <AuthLink href="/login" label="Ja tenho uma conta" />
+        <AuthLink href="/login" label="Já tenho uma conta" />
       </View>
     </View>
   );

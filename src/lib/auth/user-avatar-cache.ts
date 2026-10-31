@@ -14,7 +14,7 @@ export async function cacheUserAvatarFromUrl(userId: string, imageUrl: string) {
   const response = await expoFetch(imageUrl);
 
   if (!response.ok) {
-    throw new Error("Nao foi possivel baixar a foto de perfil.");
+    throw new Error("Não foi possível baixar a foto de perfil.");
   }
 
   const file = avatarFile(userId);

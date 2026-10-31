@@ -56,7 +56,7 @@ export function HomeScreen() {
               {displayName}
             </AppText>
             <Text className="font-sans text-[14px] leading-[20px] text-home-muted">
-              Como voce esta se sentindo neste momento?
+              Como você está se sentindo neste momento?
             </Text>
           </View>
 

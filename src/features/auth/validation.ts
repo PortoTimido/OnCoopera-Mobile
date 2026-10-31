@@ -49,9 +49,9 @@ export type ResetPasswordFormValues = {
 
 export type FieldErrors<TValues> = Partial<Record<keyof TValues, string>>;
 
-const REQUIRED_MESSAGE = "Campo obrigatorio.";
+const REQUIRED_MESSAGE = "Campo obrigatório.";
 const PASSWORD_POLICY_MESSAGE =
-  "A senha deve ter no minimo 6 caracteres, uma letra maiuscula, uma minuscula, um numero e um simbolo.";
+  "A senha deve ter no mínimo 6 caracteres, uma letra maiúscula, uma minúscula, um número e um símbolo.";
 
 export function normalizeDigits(value: string) {
   return value.replace(/\D/g, "");
@@ -67,11 +67,11 @@ export function isValidEmail(value: string) {
 
 export function passwordRules(password: string): PasswordRule[] {
   return [
-    { id: "length", label: "Minimo 6 caracteres", valid: password.length >= 6 },
-    { id: "uppercase", label: "Uma letra maiuscula", valid: /[A-Z]/.test(password) },
-    { id: "lowercase", label: "Uma letra minuscula", valid: /[a-z]/.test(password) },
-    { id: "number", label: "Um numero", valid: /\d/.test(password) },
-    { id: "symbol", label: "Um simbolo", valid: /[^A-Za-z0-9\s]/.test(password) },
+    { id: "length", label: "Mínimo 6 caracteres", valid: password.length >= 6 },
+    { id: "uppercase", label: "Uma letra maiúscula", valid: /[A-Z]/.test(password) },
+    { id: "lowercase", label: "Uma letra minúscula", valid: /[a-z]/.test(password) },
+    { id: "number", label: "Um número", valid: /\d/.test(password) },
+    { id: "symbol", label: "Um símbolo", valid: /[^A-Za-z0-9\s]/.test(password) },
   ];
 }
 
@@ -99,7 +99,7 @@ export function validateEmailRequest(email: string) {
   }
 
   if (!isValidEmail(email)) {
-    return "Informe um e-mail valido.";
+    return "Informe um e-mail válido.";
   }
 
   return undefined;
@@ -125,7 +125,7 @@ export function validateResetPassword(values: ResetPasswordFormValues) {
   if (!values.confirmarSenha) {
     errors.confirmarSenha = REQUIRED_MESSAGE;
   } else if (values.confirmarSenha !== values.novaSenha) {
-    errors.confirmarSenha = "As senhas nao conferem.";
+    errors.confirmarSenha = "As senhas não conferem.";
   }
 
   return errors;
@@ -166,15 +166,15 @@ export function validateRegisterStepOne(values: RegisterStepOneValues) {
   if (!values.telefone.trim()) {
     errors.telefone = REQUIRED_MESSAGE;
   } else if (![10, 11].includes(normalizeDigits(values.telefone).length)) {
-    errors.telefone = "Informe um telefone valido com DDD.";
+    errors.telefone = "Informe um telefone válido com DDD.";
   }
 
   if (!values.dataNascimento.trim()) {
     errors.dataNascimento = REQUIRED_MESSAGE;
   } else if (Number.isNaN(new Date(values.dataNascimento).getTime())) {
-    errors.dataNascimento = "Informe uma data de nascimento valida.";
+    errors.dataNascimento = "Informe uma data de nascimento válida.";
   } else if (new Date(values.dataNascimento).getTime() > Date.now()) {
-    errors.dataNascimento = "A data de nascimento nao pode ser no futuro.";
+    errors.dataNascimento = "A data de nascimento não pode ser no futuro.";
   }
 
   const passwordErrors = validateResetPassword({
@@ -211,7 +211,7 @@ export function validateRegisterStepTwo(values: RegisterStepTwoValues) {
   }
 
   if (values.cep.trim() && normalizeDigits(values.cep).length !== 8) {
-    errors.cep = "Informe um CEP com 8 digitos.";
+    errors.cep = "Informe um CEP com 8 dígitos.";
   }
 
   if (values.estado.trim() && values.estado.trim().length !== 2) {

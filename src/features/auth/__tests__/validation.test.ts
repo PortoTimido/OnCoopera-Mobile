@@ -17,14 +17,14 @@ describe("auth validation", () => {
   it("marks login fields as required", () => {
     const errors = validateLogin({ identificador: "", senha: "" });
 
-    expect(errors.identificador).toBe("Campo obrigatorio.");
-    expect(errors.senha).toBe("Campo obrigatorio.");
+    expect(errors.identificador).toBe("Campo obrigatório.");
+    expect(errors.senha).toBe("Campo obrigatório.");
     expect(hasFieldErrors(errors)).toBe(true);
   });
 
   it("validates email requests", () => {
-    expect(validateEmailRequest("")).toBe("Campo obrigatorio.");
-    expect(validateEmailRequest("email-invalido")).toBe("Informe um e-mail valido.");
+    expect(validateEmailRequest("")).toBe("Campo obrigatório.");
+    expect(validateEmailRequest("email-invalido")).toBe("Informe um e-mail válido.");
     expect(validateEmailRequest("paciente@oncoopera.com")).toBeUndefined();
   });
 
@@ -46,27 +46,27 @@ describe("auth validation", () => {
     expect(passwordRules("Senha1!")).toEqual([
       {
         id: "length",
-        label: "Minimo 6 caracteres",
+        label: "Mínimo 6 caracteres",
         valid: true,
       },
       {
         id: "uppercase",
-        label: "Uma letra maiuscula",
+        label: "Uma letra maiúscula",
         valid: true,
       },
       {
         id: "lowercase",
-        label: "Uma letra minuscula",
+        label: "Uma letra minúscula",
         valid: true,
       },
       {
         id: "number",
-        label: "Um numero",
+        label: "Um número",
         valid: true,
       },
       {
         id: "symbol",
-        label: "Um simbolo",
+        label: "Um símbolo",
         valid: true,
       },
     ]);
@@ -79,7 +79,7 @@ describe("auth validation", () => {
     });
 
     expect(errors.novaSenha).toBe(
-      "A senha deve ter no minimo 6 caracteres, uma letra maiuscula, uma minuscula, um numero e um simbolo.",
+      "A senha deve ter no mínimo 6 caracteres, uma letra maiúscula, uma minúscula, um número e um símbolo.",
     );
   });
 
@@ -89,7 +89,7 @@ describe("auth validation", () => {
       novaSenha: "Senha1!",
     });
 
-    expect(errors.confirmarSenha).toBe("As senhas nao conferem.");
+    expect(errors.confirmarSenha).toBe("As senhas não conferem.");
   });
 
   it("requires temporary password credentials", () => {
@@ -100,8 +100,8 @@ describe("auth validation", () => {
       senhaTemporaria: "",
     });
 
-    expect(errors.identificador).toBe("Campo obrigatorio.");
-    expect(errors.senhaTemporaria).toBe("Campo obrigatorio.");
+    expect(errors.identificador).toBe("Campo obrigatório.");
+    expect(errors.senhaTemporaria).toBe("Campo obrigatório.");
   });
 
   it("validates register address and credential fields", () => {
@@ -121,9 +121,9 @@ describe("auth validation", () => {
       telefone: "",
     });
 
-    expect(errors.nome).toBe("Campo obrigatorio.");
-    expect(errors.email).toBe("Informe um e-mail valido.");
-    expect(errors.cep).toBe("Informe um CEP com 8 digitos.");
+    expect(errors.nome).toBe("Campo obrigatório.");
+    expect(errors.email).toBe("Informe um e-mail válido.");
+    expect(errors.cep).toBe("Informe um CEP com 8 dígitos.");
   });
 
   it("generates patient login from first name and last surname", () => {
@@ -161,8 +161,8 @@ describe("auth validation", () => {
       telefone: "119999",
     });
 
-    expect(errors.dataNascimento).toBe("Campo obrigatorio.");
-    expect(errors.telefone).toBe("Informe um telefone valido com DDD.");
+    expect(errors.dataNascimento).toBe("Campo obrigatório.");
+    expect(errors.telefone).toBe("Informe um telefone válido com DDD.");
     expect(errors.nome).toBeUndefined();
     expect(errors.email).toBeUndefined();
   });
@@ -177,7 +177,7 @@ describe("auth validation", () => {
       telefone: "11999999999",
     });
 
-    expect(errors.dataNascimento).toBe("A data de nascimento nao pode ser no futuro.");
+    expect(errors.dataNascimento).toBe("A data de nascimento não pode ser no futuro.");
   });
 
   it("validates step two address fields independently", () => {
@@ -191,8 +191,8 @@ describe("auth validation", () => {
       numero: "",
     });
 
-    expect(errors.cep).toBe("Informe um CEP com 8 digitos.");
-    expect(errors.bairro).toBe("Campo obrigatorio.");
+    expect(errors.cep).toBe("Informe um CEP com 8 dígitos.");
+    expect(errors.bairro).toBe("Campo obrigatório.");
     expect(errors.estado).toBeUndefined();
   });
 });

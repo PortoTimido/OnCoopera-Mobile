@@ -54,7 +54,7 @@ export function ChangePasswordModal({ onClose, onPasswordChanged, visible }: Cha
     }) as FieldErrors<ChangePasswordFormValues>;
 
     if (!values.senhaAtual) {
-      passwordErrors.senhaAtual = "Campo obrigatorio.";
+      passwordErrors.senhaAtual = "Campo obrigatório.";
     }
 
     return passwordErrors;
@@ -82,7 +82,7 @@ export function ChangePasswordModal({ onClose, onPasswordChanged, visible }: Cha
       onPasswordChanged();
       onClose();
     } catch (submitError) {
-      setMessage(getSubmitErrorMessage(submitError, "Nao foi possivel alterar a senha."));
+      setMessage(getSubmitErrorMessage(submitError, "Não foi possível alterar a senha."));
     } finally {
       setLoading(false);
     }

@@ -10,7 +10,7 @@ export function useArtigo(id: string | undefined) {
   useEffect(() => {
     if (!id) {
       setIsLoading(false);
-      setError("Artigo nao encontrado.");
+      setError("Artigo não encontrado.");
       return undefined;
     }
 
@@ -28,7 +28,7 @@ export function useArtigo(id: string | undefined) {
         }
       } catch {
         if (mounted) {
-          setError("Nao foi possivel carregar este artigo. Tente novamente.");
+          setError("Não foi possível carregar este artigo. Tente novamente.");
         }
       } finally {
         if (mounted) {

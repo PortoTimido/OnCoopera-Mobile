@@ -9,7 +9,7 @@ type RegisterStepIndicatorProps = {
 
 const STEPS: Array<{ label: string; value: 1 | 2 }> = [
   { label: "Seus dados", value: 1 },
-  { label: "Endereco", value: 2 },
+  { label: "Endereço", value: 2 },
 ];
 
 export function RegisterStepIndicator({ step }: RegisterStepIndicatorProps) {

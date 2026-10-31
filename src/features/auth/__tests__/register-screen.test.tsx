@@ -69,8 +69,8 @@ async function fillStepTwo() {
   await fireEvent.changeText(screen.getByLabelText("UF"), "SP");
   await fireEvent.changeText(screen.getByLabelText("Cidade"), "Sao Paulo");
   await fireEvent.changeText(screen.getByLabelText("Bairro"), "Se");
-  await fireEvent.changeText(screen.getByLabelText("Endereco"), "Praca da Se");
-  await fireEvent.changeText(screen.getByLabelText("Numero"), "1");
+  await fireEvent.changeText(screen.getByLabelText("Endereço"), "Praca da Se");
+  await fireEvent.changeText(screen.getByLabelText("Número"), "1");
 }
 
 describe("register screen", () => {

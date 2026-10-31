@@ -107,7 +107,7 @@ export function useRegister() {
           estado: undefined,
           logradouro: undefined,
         }));
-        setCepLookupMessage("Endereco preenchido automaticamente pelo ViaCEP.");
+        setCepLookupMessage("Endereço preenchido automaticamente pelo ViaCEP.");
       } catch (error) {
         if (ignore || (error instanceof Error && error.name === "AbortError")) {
           return;
@@ -115,7 +115,7 @@ export function useRegister() {
 
         setErrors((current) => ({
           ...current,
-          cep: getSubmitErrorMessage(error, "Nao foi possivel buscar o CEP."),
+          cep: getSubmitErrorMessage(error, "Não foi possível buscar o CEP."),
         }));
       } finally {
         if (!ignore) {
@@ -200,7 +200,7 @@ export function useRegister() {
         setSuccess("Cadastro enviado com sucesso. Entre com seu e-mail e senha.");
       }
     } catch (error) {
-      setMessage(getSubmitErrorMessage(error, "Nao foi possivel concluir o cadastro."));
+      setMessage(getSubmitErrorMessage(error, "Não foi possível concluir o cadastro."));
     } finally {
       setLoading(false);
     }

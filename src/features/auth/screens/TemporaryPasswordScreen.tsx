@@ -61,7 +61,7 @@ export function TemporaryPasswordScreen() {
       });
       router.replace({ pathname: "/login", params: { temporaryPasswordChanged: "1" } });
     } catch (error) {
-      setMessage(getSubmitErrorMessage(error, "Nao foi possivel trocar a senha temporaria."));
+      setMessage(getSubmitErrorMessage(error, "Não foi possível trocar a senha temporária."));
     } finally {
       setLoading(false);
     }
@@ -69,7 +69,7 @@ export function TemporaryPasswordScreen() {
 
   return (
     <AuthShell testID="trocar-senha-temporaria-screen">
-      <AuthHeader subtitle="Crie sua senha definitiva para liberar o acesso." title="Trocar senha temporaria" />
+      <AuthHeader subtitle="Crie sua senha definitiva para liberar o acesso." title="Trocar senha temporária" />
 
       <AuthCard>
         <FormMessage message={message} />
@@ -87,7 +87,7 @@ export function TemporaryPasswordScreen() {
 
         <PasswordField
           error={errors.senhaTemporaria}
-          label="Senha temporaria"
+          label="Senha temporária"
           onChangeText={(value) => updateField("senhaTemporaria", value)}
           placeholder="Senha recebida"
           testID="temporary-current-password"

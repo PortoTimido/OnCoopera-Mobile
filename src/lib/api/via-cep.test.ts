@@ -40,7 +40,7 @@ describe("getAddressByCep", () => {
     });
 
     await expect(getAddressByCep("00000000")).rejects.toMatchObject({
-      message: "CEP nao encontrado.",
+      message: "CEP não encontrado.",
     });
   });
 });

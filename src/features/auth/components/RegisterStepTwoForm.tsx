@@ -34,7 +34,7 @@ export function RegisterStepTwoForm({
       <AuthTextField
         error={errors.cep}
         helperText={
-          cepLookupLoading ? "Buscando endereco pelo ViaCEP..." : (cepLookupMessage ?? "Digite 8 digitos para preencher o endereco.")
+          cepLookupLoading ? "Buscando endereço pelo ViaCEP..." : (cepLookupMessage ?? "Digite 8 dígitos para preencher o endereço.")
         }
         icon={MapPin}
         keyboardType="number-pad"
@@ -76,7 +76,7 @@ export function RegisterStepTwoForm({
         autoCapitalize="words"
         error={errors.logradouro}
         icon={Home}
-        label="Endereco"
+        label="Endereço"
         onChangeText={(value) => updateField("logradouro", value)}
         placeholder="Rua, avenida..."
         value={values.logradouro}
@@ -87,7 +87,7 @@ export function RegisterStepTwoForm({
           containerClassName="flex-1"
           error={errors.numero}
           keyboardType="number-pad"
-          label="Numero"
+          label="Número"
           onChangeText={(value) => updateField("numero", value)}
           placeholder="123"
           value={values.numero}
@@ -105,7 +105,7 @@ export function RegisterStepTwoForm({
       <AuthButton onPress={goToPreviousStep} title="Voltar" variant="secondary" />
 
       <View className="items-center">
-        <AuthLink href="/login" label="Ja tenho uma conta" />
+        <AuthLink href="/login" label="Já tenho uma conta" />
       </View>
     </View>
   );

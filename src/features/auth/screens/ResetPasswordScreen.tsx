@@ -64,7 +64,7 @@ export function ResetPasswordScreen() {
       clearRecovery();
       router.replace("/login");
     } catch (submitError) {
-      setMessage(getSubmitErrorMessage(submitError, "Nao foi possivel atualizar sua senha agora."));
+      setMessage(getSubmitErrorMessage(submitError, "Não foi possível atualizar sua senha agora."));
     } finally {
       setLoading(false);
     }

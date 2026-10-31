@@ -86,7 +86,7 @@ export function LoginScreen() {
         return;
       }
 
-      setMessage(getSubmitErrorMessage(error, "Nao foi possivel entrar agora."));
+      setMessage(getSubmitErrorMessage(error, "Não foi possível entrar agora."));
     } finally {
       setLoading(false);
     }
@@ -151,7 +151,7 @@ export function LoginScreen() {
         />
 
         <View className="items-center">
-          <Text className="font-sans text-[13px] text-auth-muted">Ainda nao tem conta?</Text>
+          <Text className="font-sans text-[13px] text-auth-muted">Ainda não tem conta?</Text>
           <AuthLink href="/cadastro" label="Criar cadastro" testID="login-register-link" />
         </View>
       </AuthCard>

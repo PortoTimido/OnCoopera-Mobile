@@ -98,7 +98,7 @@ export function ArtigoDetalheScreen({ id }: ArtigoDetalheScreenProps) {
         ) : error || !artigo ? (
           <View className="flex-1 items-center justify-center px-6">
             <AppText className="text-center text-feedback-danger" variant="body">
-              {error ?? "Artigo nao encontrado."}
+              {error ?? "Artigo não encontrado."}
             </AppText>
           </View>
         ) : (

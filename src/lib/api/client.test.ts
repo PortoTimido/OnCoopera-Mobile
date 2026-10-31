@@ -34,7 +34,7 @@ describe("api client", () => {
         message: "Network request failed",
       },
       message:
-        "Nao foi possivel conectar a API. Verifique se o backend esta rodando e se o celular esta na mesma rede do computador.",
+        "Não foi possível conectar à API. Verifique se o backend está rodando e se o celular está na mesma rede do computador.",
       status: 0,
     });
   });

@@ -21,7 +21,7 @@ export function useArtigos() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedTopicoId, setSelectedTopicoId] = useState<string>(TODOS_TOPICOS_ID);
-  const [topicos, setTopicos] = useState<ArtigoTopico[]>([{ id: TODOS_TOPICOS_ID, nome: "Todos Topicos" }]);
+  const [topicos, setTopicos] = useState<ArtigoTopico[]>([{ id: TODOS_TOPICOS_ID, nome: "Todos Tópicos" }]);
 
   useEffect(() => {
     const timeout = setTimeout(() => setDebouncedSearch(search.trim()), SEARCH_DEBOUNCE_MS);
@@ -60,7 +60,7 @@ export function useArtigos() {
           return Array.from(map, ([id, nome]) => ({ id, nome }));
         });
       } catch {
-        setError("Nao foi possivel carregar os artigos. Tente novamente.");
+        setError("Não foi possível carregar os artigos. Tente novamente.");
       } finally {
         append ? setIsLoadingMore(false) : setIsLoading(false);
       }

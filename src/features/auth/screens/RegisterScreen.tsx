@@ -9,7 +9,7 @@ export function RegisterScreen() {
     <AuthShell contentClassName="py-5" testID="cadastro-screen">
       <AuthHeader
         subtitle={
-          register.step === 1 ? "Crie sua conta para organizar seus cuidados." : "Agora informe seu endereco."
+          register.step === 1 ? "Crie sua conta para organizar seus cuidados." : "Agora informe seu endereço."
         }
         title="Cadastro"
       />

@@ -55,7 +55,7 @@ export function EditNameModal({ name, onClose, onNameUpdated, visible }: EditNam
       onNameUpdated(usuario.nome);
       onClose();
     } catch (submitError) {
-      setMessage(getSubmitErrorMessage(submitError, "Nao foi possivel atualizar o nome."));
+      setMessage(getSubmitErrorMessage(submitError, "Não foi possível atualizar o nome."));
     } finally {
       setLoading(false);
     }
