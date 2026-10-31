@@ -12,12 +12,18 @@ import {
   type VoiceNoteFile,
 } from "@/lib/api/diario-sintomas";
 import { getAccessToken } from "@/lib/auth/session";
-import { getBrasiliaCalendarDate, getRegistroDate } from "../diario-sintomas-formatters";
+import {
+  getBrasiliaCalendarDate,
+  getRegistroDate,
+} from "../diario-sintomas-formatters";
+import { redactVoiceNoteDiagnostic } from "../voice-note-diagnostics";
 
 const HISTORY_PAGE_SIZE = 20;
 const shouldLogVoiceNoteDiagnostics = __DEV__;
 
-type SintomaSelectionState = Partial<Record<SintomaTipo, { descricaoOutro?: string; intensidade: number }>>;
+type SintomaSelectionState = Partial<
+  Record<SintomaTipo, { descricaoOutro?: string; intensidade: number }>
+>;
 
 function getLoadErrorMessage(error: unknown) {
   if (error instanceof ApiError && error.status === 403) {
@@ -46,7 +52,9 @@ export function useDiarioSintomas() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
   const [registroHojeId, setRegistroHojeId] = useState<string | null>(null);
-  const [existingNotaVozUrl, setExistingNotaVozUrl] = useState<string | null>(null);
+  const [existingNotaVozUrl, setExistingNotaVozUrl] = useState<string | null>(
+    null,
+  );
   const [removerNotaVozPending, setRemoverNotaVozPending] = useState(false);
   const [humor, setHumor] = useState<Humor | null>(null);
   const [sintomas, setSintomas] = useState<SintomaSelectionState>({});
@@ -68,26 +76,35 @@ export function useDiarioSintomas() {
 
     const nextSintomas: SintomaSelectionState = {};
     for (const sintoma of registro?.sintomas ?? []) {
-      nextSintomas[sintoma.tipo] = { descricaoOutro: sintoma.descricaoOutro ?? undefined, intensidade: sintoma.intensidade };
+      nextSintomas[sintoma.tipo] = {
+        descricaoOutro: sintoma.descricaoOutro ?? undefined,
+        intensidade: sintoma.intensidade,
+      };
     }
     setSintomas(nextSintomas);
     setActiveSintoma(registro?.sintomas[0]?.tipo ?? null);
   }, []);
 
-  const loadHistoryPage = useCallback(async (token: string, page: number, append: boolean) => {
-    const response = await listRegistrosDiarios({ page, pageSize: HISTORY_PAGE_SIZE }, token);
-    const today = todayIsoDate();
-    const filtered = response.data.filter((registro) => {
-      const date = getRegistroDate(registro);
-      if (!date) return true;
-      const localDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-      return localDate !== today;
-    });
+  const loadHistoryPage = useCallback(
+    async (token: string, page: number, append: boolean) => {
+      const response = await listRegistrosDiarios(
+        { page, pageSize: HISTORY_PAGE_SIZE },
+        token,
+      );
+      const today = todayIsoDate();
+      const filtered = response.data.filter((registro) => {
+        const date = getRegistroDate(registro);
+        if (!date) return true;
+        const localDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+        return localDate !== today;
+      });
 
-    setHistory((current) => (append ? [...current, ...filtered] : filtered));
-    setHistoryPage(response.page);
-    setHistoryTotalPages(response.totalPages);
-  }, []);
+      setHistory((current) => (append ? [...current, ...filtered] : filtered));
+      setHistoryPage(response.page);
+      setHistoryTotalPages(response.totalPages);
+    },
+    [],
+  );
 
   const loadAll = useCallback(async () => {
     setIsLoading(true);
@@ -143,23 +160,37 @@ export function useDiarioSintomas() {
     }
   }, [activeSintoma, sintomas]);
 
-  const setIntensidade = useCallback((tipo: SintomaTipo, intensidade: number) => {
-    setSintomas((current) => (current[tipo] ? { ...current, [tipo]: { ...current[tipo], intensidade } } : current));
-  }, []);
+  const setIntensidade = useCallback(
+    (tipo: SintomaTipo, intensidade: number) => {
+      setSintomas((current) =>
+        current[tipo]
+          ? { ...current, [tipo]: { ...current[tipo], intensidade } }
+          : current,
+      );
+    },
+    [],
+  );
 
   const setDescricaoOutro = useCallback((descricaoOutro: string) => {
-    setSintomas((current) => (current.OUTRO ? { ...current, OUTRO: { ...current.OUTRO, descricaoOutro } } : current));
+    setSintomas((current) =>
+      current.OUTRO
+        ? { ...current, OUTRO: { ...current.OUTRO, descricaoOutro } }
+        : current,
+    );
   }, []);
 
   const selectedSintomas = useMemo<SintomaDiario[]>(
     () =>
-      (Object.entries(sintomas) as Array<[SintomaTipo, { descricaoOutro?: string; intensidade: number }]>).map(
-        ([tipo, value]) => ({
-          descricaoOutro: tipo === "OUTRO" ? (value.descricaoOutro?.trim() || null) : undefined,
-          intensidade: value.intensidade,
-          tipo,
-        }),
-      ),
+      (
+        Object.entries(sintomas) as Array<
+          [SintomaTipo, { descricaoOutro?: string; intensidade: number }]
+        >
+      ).map(([tipo, value]) => ({
+        descricaoOutro:
+          tipo === "OUTRO" ? value.descricaoOutro?.trim() || null : undefined,
+        intensidade: value.intensidade,
+        tipo,
+      })),
     [sintomas],
   );
 
@@ -192,24 +223,37 @@ export function useDiarioSintomas() {
         }
 
         const registro = await saveRegistroDiarioHoje(
-          { humor, notaVoz, removerNotaVoz: !notaVoz && removerNotaVozPending, sintomas: selectedSintomas },
+          {
+            humor,
+            notaVoz,
+            removerNotaVoz: !notaVoz && removerNotaVozPending,
+            sintomas: selectedSintomas,
+          },
           token,
         );
 
         applyRegistro(registro);
         if (shouldLogVoiceNoteDiagnostics) {
-          console.info("[diario-sintomas] save-success", { hasVoiceNote: Boolean(registro.notaVozUrl), registroId: registro.id });
+          console.info("[diario-sintomas] save-success", {
+            hasVoiceNote: Boolean(registro.notaVozUrl),
+          });
         }
         return true;
       } catch (error) {
         if (shouldLogVoiceNoteDiagnostics) {
           console.warn("[diario-sintomas] save-failed", {
             apiError: error instanceof ApiError,
-            message: error instanceof Error ? error.message : "Erro desconhecido",
+            message: redactVoiceNoteDiagnostic(
+              error instanceof Error ? error.message : "Erro desconhecido",
+            ),
             status: error instanceof ApiError ? error.status : undefined,
           });
         }
-        setSaveError(error instanceof ApiError ? error.message : "Não foi possível salvar o registro do dia.");
+        setSaveError(
+          error instanceof ApiError
+            ? error.message
+            : "Não foi possível salvar o registro do dia.",
+        );
         return false;
       } finally {
         setIsSaving(false);

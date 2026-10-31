@@ -1,14 +1,26 @@
 import { File } from "expo-file-system";
 
-import { createVoiceNoteFile, saveRegistroDiarioHoje } from "@/lib/api/diario-sintomas";
+import {
+  createVoiceNoteFile,
+  saveRegistroDiarioHoje,
+} from "@/lib/api/diario-sintomas";
 
 jest.mock("expo-file-system", () => ({
-  File: jest.fn().mockImplementation((uri: string) => Object.assign(new Blob(["audio"], { type: "audio/mp4" }), { bytes: jest.fn(), uri })),
+  File: jest
+    .fn()
+    .mockImplementation((uri: string) =>
+      Object.assign(new Blob(["audio"], { type: "audio/mp4" }), {
+        bytes: jest.fn(),
+        uri,
+      }),
+    ),
 }));
 
 describe("createVoiceNoteFile", () => {
   it("uses the actual recorder extension and its matching MIME type", () => {
-    expect(createVoiceNoteFile("file:///cache/recording.webm?temporary=true")).toEqual({
+    expect(
+      createVoiceNoteFile("file:///cache/recording.webm?temporary=true"),
+    ).toEqual({
       name: "nota-voz.webm",
       type: "audio/webm",
       uri: "file:///cache/recording.webm?temporary=true",
@@ -23,21 +35,69 @@ describe("createVoiceNoteFile", () => {
   });
 
   it("adds a native Expo File to FormData instead of React Native's legacy URI object", async () => {
-    globalThis.fetch = jest.fn().mockResolvedValue(new Response(JSON.stringify({ id: "registro-1" }), { status: 200 }));
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ id: "registro-1" }), { status: 200 }),
+      );
 
     await saveRegistroDiarioHoje(
       {
         humor: "BEM",
-        notaVoz: { name: "nota-voz.m4a", size: 123, type: "audio/mp4", uri: "file:///cache/recording.m4a" },
+        notaVoz: {
+          name: "nota-voz.m4a",
+          size: 123,
+          type: "audio/mp4",
+          uri: "file:///cache/recording.m4a",
+        },
         sintomas: [{ intensidade: 5, tipo: "DOR" }],
       },
       "token",
     );
 
     expect(File).toHaveBeenCalledWith("file:///cache/recording.m4a");
-    const [, request] = (globalThis.fetch as jest.Mock).mock.calls[0] as [string, RequestInit];
+    const [, request] = (globalThis.fetch as jest.Mock).mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
     const formPart = (request.body as FormData).getAll("notaVoz")[0];
     expect(formPart).toBeInstanceOf(Blob);
     expect((formPart as Blob).type).toBe("audio/mp4");
+  });
+
+  it("logs the MIME type actually selected for the multipart part", async () => {
+    const diagnostic = jest
+      .spyOn(console, "info")
+      .mockImplementation(() => undefined);
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ id: "registro-1" }), { status: 200 }),
+      );
+
+    await saveRegistroDiarioHoje(
+      {
+        humor: "BEM",
+        notaVoz: {
+          name: "nota-voz.m4a",
+          size: 123,
+          type: "audio/mpeg",
+          uri: "file:///cache/recording.m4a",
+        },
+        sintomas: [{ intensidade: 5, tipo: "DOR" }],
+      },
+      "token",
+    );
+
+    expect(diagnostic).toHaveBeenCalledWith(
+      "[diario-sintomas] upload-file-metadata",
+      expect.objectContaining({
+        declaredMimeType: "audio/mpeg",
+        mimeMatchesDeclared: false,
+        multipartField: "notaVoz",
+        multipartMimeType: "audio/mp4",
+      }),
+    );
+    diagnostic.mockRestore();
   });
 });

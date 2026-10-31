@@ -35,7 +35,8 @@ export function useVoiceRecorder() {
 
     try {
       const current = await getRecordingPermissionsAsync();
-      const granted = current.granted || (await requestRecordingPermissionsAsync()).granted;
+      const granted =
+        current.granted || (await requestRecordingPermissionsAsync()).granted;
 
       if (!granted) {
         setPermissionDenied(true);
@@ -43,7 +44,10 @@ export function useVoiceRecorder() {
       }
 
       setPermissionDenied(false);
-      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
+      });
       await recorder.prepareToRecordAsync();
       recorder.record();
       setStatus("recording");
@@ -66,7 +70,10 @@ export function useVoiceRecorder() {
     try {
       const finishedDuration = recorderState.durationMillis;
       await recorder.stop();
-      await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => undefined);
+      await setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+      }).catch(() => undefined);
       const uri = recorder.uri;
 
       if (!uri) {
@@ -80,6 +87,7 @@ export function useVoiceRecorder() {
         if (shouldLogVoiceNoteDiagnostics) {
           console.warn("[diario-sintomas] voice-note-file-unavailable", {
             exists: recordingFile.exists,
+            inferredMimeType: recordingFile.type || null,
             size: recordingFile.size,
             uriScheme: uri.split(":", 1)[0],
           });
@@ -92,13 +100,20 @@ export function useVoiceRecorder() {
       if (shouldLogVoiceNoteDiagnostics) {
         console.info("[diario-sintomas] voice-note-recorded", {
           durationMillis: finishedDuration,
+          extension:
+            uri.split(/[?#]/, 1)[0]?.split(".").pop()?.toLowerCase() ?? null,
+          inferredMimeType: recordingFile.type || null,
           size: recordingFile.size,
           uriScheme: uri.split(":", 1)[0],
         });
       }
 
       setStatus("recorded");
-      return { durationMillis: finishedDuration, size: recordingFile.size, uri };
+      return {
+        durationMillis: finishedDuration,
+        size: recordingFile.size,
+        uri,
+      };
     } catch {
       setError("Não foi possível finalizar a gravação.");
       setStatus("idle");
@@ -116,7 +131,10 @@ export function useVoiceRecorder() {
     } catch {
       // Best-effort stop before discarding the recording.
     } finally {
-      await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true }).catch(() => undefined);
+      await setAudioModeAsync({
+        allowsRecording: false,
+        playsInSilentMode: true,
+      }).catch(() => undefined);
     }
 
     setError(null);

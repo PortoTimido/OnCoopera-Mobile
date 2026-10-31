@@ -5,7 +5,15 @@ import { apiRequest, buildApiUrl } from "@/lib/api/client";
 
 export type Humor = "MUITO_BEM" | "BEM" | "NEUTRO" | "MAL" | "MUITO_MAL";
 
-export type SintomaTipo = "NAUSEA" | "FATIGA" | "DOR" | "TONTURA" | "FEBRE" | "SONO" | "APETITE" | "OUTRO";
+export type SintomaTipo =
+  | "NAUSEA"
+  | "FATIGA"
+  | "DOR"
+  | "TONTURA"
+  | "FEBRE"
+  | "SONO"
+  | "APETITE"
+  | "OUTRO";
 
 export type SintomaDiario = {
   descricaoOutro?: string | null;
@@ -68,8 +76,11 @@ const VOICE_NOTE_MIME_TYPES: Record<string, string> = {
  */
 export function createVoiceNoteFile(uri: string, size?: number): VoiceNoteFile {
   const path = uri.split(/[?#]/, 1)[0] ?? "";
-  const extension = path.includes(".") ? path.split(".").pop()?.toLowerCase() : undefined;
-  const normalizedExtension = extension && VOICE_NOTE_MIME_TYPES[extension] ? extension : "m4a";
+  const extension = path.includes(".")
+    ? path.split(".").pop()?.toLowerCase()
+    : undefined;
+  const normalizedExtension =
+    extension && VOICE_NOTE_MIME_TYPES[extension] ? extension : "m4a";
 
   return {
     name: `nota-voz.${normalizedExtension}`,
@@ -112,7 +123,33 @@ async function buildRegistroDiarioFormData(payload: SaveRegistroDiarioPayload) {
       formData.append("notaVoz", await response.blob(), payload.notaVoz.name);
     } else {
       // Expo Fetch serializes Blob/File parts, not React Native's legacy { uri, name, type } object.
-      formData.append("notaVoz", new File(payload.notaVoz.uri) as unknown as Blob);
+      const file = new File(payload.notaVoz.uri);
+      formData.append("notaVoz", file as unknown as Blob);
+      if (__DEV__) {
+        const part = formData.get("notaVoz") as
+          (Blob & { name?: string }) | null;
+        console.info("[diario-sintomas] upload-file-metadata", {
+          backendAcceptsMultipartMimeType: [
+            "audio/mpeg",
+            "audio/mp4",
+            "audio/x-m4a",
+            "audio/wav",
+            "audio/x-wav",
+          ].includes(part?.type ?? ""),
+          declaredMimeType: payload.notaVoz.type,
+          declaredSize: payload.notaVoz.size ?? null,
+          fileExists: file.exists,
+          inferredMimeType: file.type || null,
+          actualSize: file.size ?? null,
+          multipartField: "notaVoz",
+          multipartFilenameExtension:
+            part?.name?.split(".").pop()?.toLowerCase() ?? null,
+          multipartMimeType: part?.type || null,
+          multipartSize: part?.size ?? null,
+          mimeMatchesDeclared: part?.type === payload.notaVoz.type,
+          platform: Platform.OS,
+        });
+      }
     }
   }
 
@@ -123,16 +160,22 @@ async function buildRegistroDiarioFormData(payload: SaveRegistroDiarioPayload) {
   return formData;
 }
 
-export function listRegistrosDiarios(params: ListRegistrosDiariosParams = {}, accessToken: string) {
+export function listRegistrosDiarios(
+  params: ListRegistrosDiariosParams = {},
+  accessToken: string,
+) {
   const query = new URLSearchParams();
 
   query.set("page", String(params.page ?? 1));
   query.set("pageSize", String(params.pageSize ?? 20));
 
-  return apiRequest<PaginatedRegistrosDiarios>(`/v1/mobile/diario-sintomas?${query.toString()}`, {
-    method: "GET",
-    token: accessToken,
-  });
+  return apiRequest<PaginatedRegistrosDiarios>(
+    `/v1/mobile/diario-sintomas?${query.toString()}`,
+    {
+      method: "GET",
+      token: accessToken,
+    },
+  );
 }
 
 export function getRegistroDiarioHoje(accessToken: string) {
@@ -142,7 +185,10 @@ export function getRegistroDiarioHoje(accessToken: string) {
   });
 }
 
-export async function saveRegistroDiarioHoje(payload: SaveRegistroDiarioPayload, accessToken: string) {
+export async function saveRegistroDiarioHoje(
+  payload: SaveRegistroDiarioPayload,
+  accessToken: string,
+) {
   return apiRequest<RegistroDiario>("/v1/mobile/diario-sintomas/hoje", {
     body: await buildRegistroDiarioFormData(payload),
     diagnostics: saveDiagnostics(payload),
@@ -158,7 +204,11 @@ export function getRegistroDiarioById(id: string, accessToken: string) {
   });
 }
 
-export async function updateRegistroDiario(id: string, payload: SaveRegistroDiarioPayload, accessToken: string) {
+export async function updateRegistroDiario(
+  id: string,
+  payload: SaveRegistroDiarioPayload,
+  accessToken: string,
+) {
   return apiRequest<RegistroDiario>(`/v1/mobile/diario-sintomas/${id}`, {
     body: await buildRegistroDiarioFormData(payload),
     diagnostics: saveDiagnostics(payload),
