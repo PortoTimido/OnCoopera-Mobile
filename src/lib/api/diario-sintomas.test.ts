@@ -65,39 +65,4 @@ describe("createVoiceNoteFile", () => {
     expect((formPart as Blob).type).toBe("audio/mp4");
   });
 
-  it("logs the MIME type actually selected for the multipart part", async () => {
-    const diagnostic = jest
-      .spyOn(console, "info")
-      .mockImplementation(() => undefined);
-    globalThis.fetch = jest
-      .fn()
-      .mockResolvedValue(
-        new Response(JSON.stringify({ id: "registro-1" }), { status: 200 }),
-      );
-
-    await saveRegistroDiarioHoje(
-      {
-        humor: "BEM",
-        notaVoz: {
-          name: "nota-voz.m4a",
-          size: 123,
-          type: "audio/mpeg",
-          uri: "file:///cache/recording.m4a",
-        },
-        sintomas: [{ intensidade: 5, tipo: "DOR" }],
-      },
-      "token",
-    );
-
-    expect(diagnostic).toHaveBeenCalledWith(
-      "[diario-sintomas] upload-file-metadata",
-      expect.objectContaining({
-        declaredMimeType: "audio/mpeg",
-        mimeMatchesDeclared: false,
-        multipartField: "notaVoz",
-        multipartMimeType: "audio/mp4",
-      }),
-    );
-    diagnostic.mockRestore();
-  });
 });

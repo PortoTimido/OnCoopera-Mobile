@@ -5,7 +5,7 @@ import {
 } from "expo-audio";
 import { Mic, Pause, Play, Square, Trash2 } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
-import { Animated, Easing, Platform } from "react-native";
+import { Animated, Easing } from "react-native";
 import { Pressable, Text, View } from "react-native-css/components";
 
 import { AppText, FormMessage } from "@/components/ui";
@@ -15,9 +15,6 @@ import { nativePropColors } from "@/lib/design/native-prop-colors";
 import { formatRecordingDuration } from "../diario-sintomas-formatters";
 import { useVoiceRecorder } from "../hooks/use-voice-recorder";
 import { useProtectedVoiceNoteSource } from "../use-protected-voice-note-source";
-import {
-  useVoiceNotePlaybackDiagnostics,
-} from "../voice-note-diagnostics";
 import { toggleVoiceNotePlayback } from "../voice-note-playback";
 
 type DiarioVoiceNoteCardProps = {
@@ -129,11 +126,6 @@ function VoiceNotePlayback({
   const protectedSource = useProtectedVoiceNoteSource(source);
   const player = useAudioPlayer(protectedSource.source);
   const playerStatus = useAudioPlayerStatus(player);
-  useVoiceNotePlaybackDiagnostics(
-    playerStatus,
-    "today",
-    Platform.OS === "web" ? "webBlob" : "localDownload",
-  );
   const playbackError =
     protectedSource.error ??
     (playerStatus.error

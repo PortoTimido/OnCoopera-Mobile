@@ -8,7 +8,6 @@ import { Pause, Play } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   BackHandler,
-  Platform,
   Pressable,
   StyleSheet,
   useWindowDimensions,
@@ -42,9 +41,6 @@ import {
   SINTOMA_LABEL,
 } from "../diario-sintomas-formatters";
 import { useProtectedVoiceNoteSource } from "../use-protected-voice-note-source";
-import {
-  useVoiceNotePlaybackDiagnostics,
-} from "../voice-note-diagnostics";
 import { toggleVoiceNotePlayback } from "../voice-note-playback";
 
 const OVERLAY_OPACITY = 0.6;
@@ -55,11 +51,6 @@ function RegistroVoiceNotePlayer({ source }: { source: AudioSource }) {
   const protectedSource = useProtectedVoiceNoteSource(source);
   const player = useAudioPlayer(protectedSource.source);
   const status = useAudioPlayerStatus(player);
-  useVoiceNotePlaybackDiagnostics(
-    status,
-    "history",
-    Platform.OS === "web" ? "webBlob" : "localDownload",
-  );
   const playbackError =
     protectedSource.error ??
     (status.error

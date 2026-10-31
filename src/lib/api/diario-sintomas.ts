@@ -90,24 +90,6 @@ export function createVoiceNoteFile(uri: string, size?: number): VoiceNoteFile {
   };
 }
 
-function saveDiagnostics(payload: SaveRegistroDiarioPayload) {
-  return {
-    feature: "diario-sintomas",
-    metadata: {
-      formFields: payload.notaVoz
-        ? "humor,sintomas,notaVoz"
-        : payload.removerNotaVoz
-          ? "humor,sintomas,removerNotaVoz"
-          : "humor,sintomas",
-      hasVoiceNote: Boolean(payload.notaVoz),
-      voiceNoteExtension: payload.notaVoz?.name.split(".").pop(),
-      voiceNoteMimeType: payload.notaVoz?.type,
-      voiceNoteSize: payload.notaVoz?.size,
-      voiceNoteUriScheme: payload.notaVoz?.uri.split(":", 1)[0],
-    },
-  };
-}
-
 async function buildRegistroDiarioFormData(payload: SaveRegistroDiarioPayload) {
   const formData = new FormData();
 
@@ -125,31 +107,6 @@ async function buildRegistroDiarioFormData(payload: SaveRegistroDiarioPayload) {
       // Expo Fetch serializes Blob/File parts, not React Native's legacy { uri, name, type } object.
       const file = new File(payload.notaVoz.uri);
       formData.append("notaVoz", file as unknown as Blob);
-      if (__DEV__) {
-        const part = formData.get("notaVoz") as
-          (Blob & { name?: string }) | null;
-        console.info("[diario-sintomas] upload-file-metadata", {
-          backendAcceptsMultipartMimeType: [
-            "audio/mpeg",
-            "audio/mp4",
-            "audio/x-m4a",
-            "audio/wav",
-            "audio/x-wav",
-          ].includes(part?.type ?? ""),
-          declaredMimeType: payload.notaVoz.type,
-          declaredSize: payload.notaVoz.size ?? null,
-          fileExists: file.exists,
-          inferredMimeType: file.type || null,
-          actualSize: file.size ?? null,
-          multipartField: "notaVoz",
-          multipartFilenameExtension:
-            part?.name?.split(".").pop()?.toLowerCase() ?? null,
-          multipartMimeType: part?.type || null,
-          multipartSize: part?.size ?? null,
-          mimeMatchesDeclared: part?.type === payload.notaVoz.type,
-          platform: Platform.OS,
-        });
-      }
     }
   }
 
@@ -191,7 +148,6 @@ export async function saveRegistroDiarioHoje(
 ) {
   return apiRequest<RegistroDiario>("/v1/mobile/diario-sintomas/hoje", {
     body: await buildRegistroDiarioFormData(payload),
-    diagnostics: saveDiagnostics(payload),
     method: "PUT",
     token: accessToken,
   });
@@ -211,7 +167,6 @@ export async function updateRegistroDiario(
 ) {
   return apiRequest<RegistroDiario>(`/v1/mobile/diario-sintomas/${id}`, {
     body: await buildRegistroDiarioFormData(payload),
-    diagnostics: saveDiagnostics(payload),
     method: "PATCH",
     token: accessToken,
   });

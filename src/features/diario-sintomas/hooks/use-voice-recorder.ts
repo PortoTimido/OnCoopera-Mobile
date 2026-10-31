@@ -11,8 +11,6 @@ import { useCallback, useState } from "react";
 
 export type VoiceRecorderStatus = "idle" | "paused" | "recorded" | "recording";
 
-const shouldLogVoiceNoteDiagnostics = __DEV__;
-
 function deleteRecordingFile(uri: string | null | undefined) {
   if (!uri) return;
 
@@ -84,28 +82,9 @@ export function useVoiceRecorder() {
 
       const recordingFile = new File(uri);
       if (!recordingFile.exists || recordingFile.size === 0) {
-        if (shouldLogVoiceNoteDiagnostics) {
-          console.warn("[diario-sintomas] voice-note-file-unavailable", {
-            exists: recordingFile.exists,
-            inferredMimeType: recordingFile.type || null,
-            size: recordingFile.size,
-            uriScheme: uri.split(":", 1)[0],
-          });
-        }
         setError("A gravação não pôde ser salva. Tente novamente.");
         setStatus("idle");
         return null;
-      }
-
-      if (shouldLogVoiceNoteDiagnostics) {
-        console.info("[diario-sintomas] voice-note-recorded", {
-          durationMillis: finishedDuration,
-          extension:
-            uri.split(/[?#]/, 1)[0]?.split(".").pop()?.toLowerCase() ?? null,
-          inferredMimeType: recordingFile.type || null,
-          size: recordingFile.size,
-          uriScheme: uri.split(":", 1)[0],
-        });
       }
 
       setStatus("recorded");

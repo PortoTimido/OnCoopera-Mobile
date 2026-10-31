@@ -16,10 +16,8 @@ import {
   getBrasiliaCalendarDate,
   getRegistroDate,
 } from "../diario-sintomas-formatters";
-import { redactVoiceNoteDiagnostic } from "../voice-note-diagnostics";
 
 const HISTORY_PAGE_SIZE = 20;
-const shouldLogVoiceNoteDiagnostics = __DEV__;
 
 type SintomaSelectionState = Partial<
   Record<SintomaTipo, { descricaoOutro?: string; intensidade: number }>
@@ -213,15 +211,6 @@ export function useDiarioSintomas() {
           throw new Error("Sessão expirada. Entre novamente.");
         }
 
-        if (shouldLogVoiceNoteDiagnostics) {
-          console.info("[diario-sintomas] save-start", {
-            hasVoiceNote: Boolean(notaVoz),
-            voiceNoteExtension: notaVoz?.name.split(".").pop(),
-            voiceNoteMimeType: notaVoz?.type,
-            symptomCount: selectedSintomas.length,
-          });
-        }
-
         const registro = await saveRegistroDiarioHoje(
           {
             humor,
@@ -233,22 +222,8 @@ export function useDiarioSintomas() {
         );
 
         applyRegistro(registro);
-        if (shouldLogVoiceNoteDiagnostics) {
-          console.info("[diario-sintomas] save-success", {
-            hasVoiceNote: Boolean(registro.notaVozUrl),
-          });
-        }
         return true;
       } catch (error) {
-        if (shouldLogVoiceNoteDiagnostics) {
-          console.warn("[diario-sintomas] save-failed", {
-            apiError: error instanceof ApiError,
-            message: redactVoiceNoteDiagnostic(
-              error instanceof Error ? error.message : "Erro desconhecido",
-            ),
-            status: error instanceof ApiError ? error.status : undefined,
-          });
-        }
         setSaveError(
           error instanceof ApiError
             ? error.message
