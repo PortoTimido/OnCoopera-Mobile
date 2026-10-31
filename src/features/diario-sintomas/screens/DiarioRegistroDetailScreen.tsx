@@ -44,7 +44,6 @@ import {
 import { useProtectedVoiceNoteSource } from "../use-protected-voice-note-source";
 import {
   useVoiceNotePlaybackDiagnostics,
-  type VoiceNotePlaybackMode,
 } from "../voice-note-diagnostics";
 import { toggleVoiceNotePlayback } from "../voice-note-playback";
 
@@ -53,14 +52,14 @@ const CLOSE_DISTANCE_RATIO = 0.25;
 const CLOSE_VELOCITY = 1_000;
 
 function RegistroVoiceNotePlayer({ source }: { source: AudioSource }) {
-  const [diagnosticMode, setDiagnosticMode] =
-    useState<VoiceNotePlaybackMode>("remote");
   const protectedSource = useProtectedVoiceNoteSource(source);
-  const player = useAudioPlayer(protectedSource.source, {
-    downloadFirst: __DEV__ && diagnosticMode === "downloadFirst",
-  });
+  const player = useAudioPlayer(protectedSource.source);
   const status = useAudioPlayerStatus(player);
-  useVoiceNotePlaybackDiagnostics(status, "history", diagnosticMode);
+  useVoiceNotePlaybackDiagnostics(
+    status,
+    "history",
+    Platform.OS === "web" ? "webBlob" : "localDownload",
+  );
   const playbackError =
     protectedSource.error ??
     (status.error
@@ -114,28 +113,6 @@ function RegistroVoiceNotePlayer({ source }: { source: AudioSource }) {
       </Pressable>
       {playbackError ? (
         <FormMessage message={playbackError} tone="error" />
-      ) : null}
-      {__DEV__ &&
-      Platform.OS === "ios" &&
-      protectedSource.source &&
-      typeof protectedSource.source === "object" &&
-      "headers" in protectedSource.source ? (
-        <Pressable
-          accessibilityLabel="Alternar diagnóstico de downloadFirst do registro"
-          accessibilityRole="button"
-          className="items-center rounded-pill border border-feedback-danger/30 py-2"
-          onPress={() =>
-            setDiagnosticMode((current) =>
-              current === "remote" ? "downloadFirst" : "remote",
-            )
-          }
-          testID="diario-detail-diagnostic-mode"
-        >
-          <Text className="font-sans text-[12px] text-feedback-danger">
-            Diagnóstico:{" "}
-            {diagnosticMode === "remote" ? "remoto" : "downloadFirst"}
-          </Text>
-        </Pressable>
       ) : null}
     </View>
   );

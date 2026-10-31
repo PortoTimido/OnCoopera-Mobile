@@ -2,7 +2,7 @@ import type { AudioStatus } from "expo-audio";
 import { useEffect } from "react";
 import { Platform } from "react-native";
 
-export type VoiceNotePlaybackMode = "remote" | "downloadFirst";
+export type VoiceNotePlaybackMode = "localDownload" | "webBlob";
 
 export function redactVoiceNoteDiagnostic(value: string | null | undefined) {
   return (

@@ -33,6 +33,18 @@ jest.mock("expo-audio", () => ({
   })),
   useAudioPlayerStatus: () => ({ duration: 0, playing: false }),
 }));
+jest.mock("expo-file-system", () => ({
+  File: Object.assign(
+    jest.fn(() => ({ uri: "file:///cache/target.m4a" })),
+    {
+      downloadFileAsync: jest.fn(async () => ({
+        delete: jest.fn(),
+        uri: "file:///cache/nota-voz.m4a",
+      })),
+    },
+  ),
+  Paths: { cache: "file:///cache" },
+}));
 jest.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ bottom: 0, left: 0, right: 0, top: 0 }),
 }));
@@ -117,21 +129,11 @@ describe("diary record detail sheet", () => {
     await fireEvent.press(playButton);
     expect(mockPlayAudio).toHaveBeenCalledTimes(1);
 
-    const diagnosticButton = screen.getByTestId(
-      "diario-detail-diagnostic-mode",
+    await waitFor(() =>
+      expect(jest.mocked(useAudioPlayer)).toHaveBeenCalledWith(
+        "file:///cache/nota-voz.m4a",
+      ),
     );
-    expect(jest.mocked(useAudioPlayer)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        uri: "https://example.com/registro-1/nota-voz",
-      }),
-      { downloadFirst: false },
-    );
-    await fireEvent.press(diagnosticButton);
-    expect(jest.mocked(useAudioPlayer)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        uri: "https://example.com/registro-1/nota-voz",
-      }),
-      { downloadFirst: true },
-    );
+    expect(screen.queryByTestId("diario-detail-diagnostic-mode")).toBeNull();
   });
 });
