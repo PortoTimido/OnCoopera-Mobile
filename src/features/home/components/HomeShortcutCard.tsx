@@ -1,5 +1,5 @@
 import { Link, type Href } from "expo-router";
-import { BookOpen, ClipboardList, Sprout } from "lucide-react-native";
+import { BookOpen, ClipboardList, FileText, Sprout } from "lucide-react-native";
 import type { ComponentType } from "react";
 import { Pressable, View } from "react-native-css/components";
 
@@ -17,6 +17,7 @@ type IconComponent = ComponentType<{
 const shortcutIcons: Record<HomeShortcut["id"], IconComponent> = {
   articles: BookOpen,
   diary: ClipboardList,
+  report: FileText,
   support: Sprout,
 };
 
@@ -31,6 +32,11 @@ const shortcutToneClasses: Record<HomeShortcut["tone"], { card: string; icon: st
     icon: "bg-home-gold",
     label: "text-home-gold-ink",
   },
+  green: {
+    card: "border-home-green-border bg-home-green-soft",
+    icon: "bg-home-green",
+    label: "text-home-green-ink",
+  },
   lavender: {
     card: "border-home-lavender-border bg-home-lavender-soft",
     icon: "bg-home-lavender",
@@ -41,12 +47,14 @@ const shortcutToneClasses: Record<HomeShortcut["tone"], { card: string; icon: st
 const shortcutToneColors: Record<HomeShortcut["tone"], string> = {
   blue: nativePropColors.white,
   gold: nativePropColors.white,
+  green: nativePropColors.white,
   lavender: nativePropColors.homeLavenderInk,
 };
 
 const shortcutHrefs: Partial<Record<HomeShortcut["id"], Href>> = {
   articles: "/artigos",
   diary: "/diario",
+  report: "/relatorio-medico",
   support: "/apoios",
 };
 
