@@ -1,6 +1,7 @@
 import {
   changePassword,
   changeTemporaryPassword,
+  acceptTermsOfUse,
   login,
   loginWithGoogle,
   requestPatientPasswordRecovery,
@@ -67,6 +68,31 @@ describe("auth api", () => {
       message: "Falha de autenticacao.",
       status,
     } satisfies Partial<ApiError>);
+  });
+
+  it("returns the restricted terms token without treating it as an authenticated session", async () => {
+    const usuario = {
+      dataNascimento: "1990-01-01", email: "paciente@oncoopera.com", id: "user-id", login: "paciente", nome: "Paciente",
+      perfisAdministrativos: [], status: "ATIVO", telefone: "11999999999", tipo: "PACIENTE", trocaSenhaObrigatoria: false, ultimoAcesso: null,
+    };
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce(await mockResponse(200, {
+      aceiteTermosUsoPendente: true, tokenAceite: "restricted-token", usuario,
+    }));
+
+    await expect(login({ identificador: "paciente", senha: "SenhaForte123!" })).resolves.toEqual({
+      aceiteTermosUsoPendente: true, tokenAceite: "restricted-token", usuario,
+    });
+  });
+
+  it("accepts the terms using only the temporary bearer token", async () => {
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce(await mockResponse(200, { accessToken: "session-token" }));
+
+    await expect(acceptTermsOfUse("restricted-token")).resolves.toEqual({ accessToken: "session-token" });
+
+    const [url, options] = (globalThis.fetch as jest.Mock).mock.calls[0];
+    expect(url).toBe("http://localhost:3000/api/mobile/aceites-documentos/termos-uso");
+    expect(options.method).toBe("POST");
+    expect((options.headers as Headers).get("Authorization")).toBe("Bearer restricted-token");
   });
 
   it("exchanges a Google ID Token for an OnCoopera session", async () => {

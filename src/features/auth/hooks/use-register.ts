@@ -13,7 +13,7 @@ import {
 } from "@/features/auth/validation";
 import { createPatient, login } from "@/lib/api/auth";
 import { getAddressByCep } from "@/lib/api/via-cep";
-import { saveAuthSession } from "@/lib/auth/session";
+import { saveAuthSession, savePendingTermsAcceptance } from "@/lib/auth/session";
 import { getPendingGeocodingCoordinates } from "@/lib/geocoding/geocode-address";
 
 export type RegisterStep = 1 | 2;
@@ -191,9 +191,15 @@ export function useRegister() {
       });
 
       try {
-        const session = await login({ identificador: values.email.trim(), senha: values.senha });
+        const response = await login({ identificador: values.email.trim(), senha: values.senha });
 
-        await saveAuthSession(session, true);
+        if ("aceiteTermosUsoPendente" in response) {
+          await savePendingTermsAcceptance({ ...response, remember: true });
+          router.replace("/aceitar-termos");
+          return;
+        }
+
+        await saveAuthSession(response, true);
         router.replace({ pathname: "/inicio", params: { medicalGuidance: "1" } });
         return;
       } catch {

@@ -4,7 +4,7 @@ import { LoginScreen } from "@/features/auth/screens/LoginScreen";
 import type { AuthResponse } from "@/lib/api/auth";
 import { login, loginWithGoogle } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
-import { saveAuthSession } from "@/lib/auth/session";
+import { saveAuthSession, savePendingTermsAcceptance } from "@/lib/auth/session";
 import {
   getGoogleIdToken,
   GoogleSignInError,
@@ -27,6 +27,7 @@ jest.mock("@/lib/auth/google-sign-in", () => {
 
 jest.mock("@/lib/auth/session", () => ({
   saveAuthSession: jest.fn(),
+  savePendingTermsAcceptance: jest.fn(),
 }));
 
 const mockReplace = jest.fn();
@@ -42,6 +43,7 @@ const mockedLoginWithGoogle = jest.mocked(loginWithGoogle);
 const mockedGetGoogleIdToken = jest.mocked(getGoogleIdToken);
 const mockedIsGoogleSignInAvailable = jest.mocked(isGoogleSignInAvailable);
 const mockedSaveAuthSession = jest.mocked(saveAuthSession);
+const mockedSavePendingTermsAcceptance = jest.mocked(savePendingTermsAcceptance);
 
 const session: AuthResponse = {
   accessToken: "token",
@@ -102,6 +104,28 @@ describe("login screen", () => {
       pathname: "/inicio",
       params: { medicalGuidance: "1" },
     });
+  });
+
+  it("sends a pending terms login to the acceptance screen without creating a session", async () => {
+    mockedLogin.mockResolvedValue({
+      aceiteTermosUsoPendente: true,
+      tokenAceite: "restricted-token",
+      usuario: session.usuario,
+    });
+
+    await render(<LoginScreen />);
+    await fireEvent.changeText(screen.getByTestId("login-identificador"), "ana@oncoopera.com");
+    await fireEvent.changeText(screen.getByTestId("login-senha"), "Senha1!");
+    await fireEvent.press(screen.getByTestId("login-submit"));
+
+    await waitFor(() => expect(mockedSavePendingTermsAcceptance).toHaveBeenCalledWith({
+      aceiteTermosUsoPendente: true,
+      remember: false,
+      tokenAceite: "restricted-token",
+      usuario: session.usuario,
+    }));
+    expect(mockedSaveAuthSession).not.toHaveBeenCalled();
+    expect(mockReplace).toHaveBeenCalledWith("/aceitar-termos");
   });
 
   it("silently handles a Google sign in cancellation", async () => {

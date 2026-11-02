@@ -20,9 +20,9 @@ import {
   validateLogin,
 } from "@/features/auth/validation";
 import { getSubmitErrorMessage } from "@/features/auth/screens/screen-helpers";
-import { login, loginWithGoogle } from "@/lib/api/auth";
+import { login, loginWithGoogle, type LoginResponse } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
-import { saveAuthSession } from "@/lib/auth/session";
+import { saveAuthSession, savePendingTermsAcceptance } from "@/lib/auth/session";
 import {
   getGoogleIdToken,
   GoogleSignInError,
@@ -74,7 +74,7 @@ function getGoogleErrorMessage(error: unknown) {
 
 export function LoginScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ passwordChanged?: string; temporaryPasswordChanged?: string }>();
+  const params = useLocalSearchParams<{ passwordChanged?: string; temporaryPasswordChanged?: string; termsMessage?: string }>();
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState<FieldErrors<LoginFormValues>>({});
   const [remember, setRemember] = useState(false);
@@ -91,10 +91,25 @@ export function LoginScreen() {
       return "Senha alterada com sucesso. Entre com sua nova senha.";
     }
 
+    if (params.termsMessage) {
+      return params.termsMessage;
+    }
+
     return null;
   });
 
   const googleAvailable = isGoogleSignInAvailable();
+
+  async function continueAfterLogin(response: LoginResponse) {
+    if ("aceiteTermosUsoPendente" in response) {
+      await savePendingTermsAcceptance({ ...response, remember });
+      router.replace("/aceitar-termos");
+      return;
+    }
+
+    await saveAuthSession(response, remember);
+    router.replace({ pathname: "/inicio", params: { medicalGuidance: "1" } });
+  }
 
   function updateField(field: keyof LoginFormValues, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -119,13 +134,12 @@ export function LoginScreen() {
     setLoading(true);
 
     try {
-      const session = await login({
+      const response = await login({
         identificador: values.identificador.trim(),
         senha: values.senha,
       });
 
-      await saveAuthSession(session, remember);
-      router.replace({ pathname: "/inicio", params: { medicalGuidance: "1" } });
+      await continueAfterLogin(response);
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         router.push({
@@ -159,9 +173,8 @@ export function LoginScreen() {
         return;
       }
 
-      const session = await loginWithGoogle({ idToken: googleResult.idToken });
-      await saveAuthSession(session, remember);
-      router.replace({ pathname: "/inicio", params: { medicalGuidance: "1" } });
+      const response = await loginWithGoogle({ idToken: googleResult.idToken });
+      await continueAfterLogin(response);
     } catch (error) {
       setMessage(getGoogleErrorMessage(error));
     } finally {

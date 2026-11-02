@@ -24,6 +24,18 @@ export type AuthResponse = {
   usuario: AuthenticatedUser;
 };
 
+export type PendingTermsAcceptanceResponse = {
+  aceiteTermosUsoPendente: true;
+  tokenAceite: string;
+  usuario: AuthenticatedUser;
+};
+
+export type LoginResponse = AuthResponse | PendingTermsAcceptanceResponse;
+
+export type TermsAcceptanceResponse = {
+  accessToken: string;
+};
+
 export type LoginRequest = {
   identificador: string;
   senha: string;
@@ -106,31 +118,43 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function parseAuthResponse(value: unknown): AuthResponse {
-  if (!isRecord(value) || typeof value.accessToken !== "string" || !value.accessToken.trim()) {
-    throw new Error("Resposta de autenticação inválida.");
-  }
-
-  const user = value.usuario;
-
+function parseAuthenticatedUser(value: unknown): AuthenticatedUser {
   if (
-    !isRecord(user) ||
-    typeof user.dataNascimento !== "string" ||
-    typeof user.email !== "string" ||
-    typeof user.id !== "string" ||
-    typeof user.login !== "string" ||
-    typeof user.nome !== "string" ||
-    !Array.isArray(user.perfisAdministrativos) ||
-    typeof user.status !== "string" ||
-    typeof user.telefone !== "string" ||
-    typeof user.tipo !== "string" ||
-    typeof user.trocaSenhaObrigatoria !== "boolean" ||
-    !(typeof user.ultimoAcesso === "string" || user.ultimoAcesso === null)
+    !isRecord(value) ||
+    typeof value.dataNascimento !== "string" ||
+    typeof value.email !== "string" ||
+    typeof value.id !== "string" ||
+    typeof value.login !== "string" ||
+    typeof value.nome !== "string" ||
+    !Array.isArray(value.perfisAdministrativos) ||
+    typeof value.status !== "string" ||
+    typeof value.telefone !== "string" ||
+    typeof value.tipo !== "string" ||
+    typeof value.trocaSenhaObrigatoria !== "boolean" ||
+    !(typeof value.ultimoAcesso === "string" || value.ultimoAcesso === null)
   ) {
     throw new Error("Resposta de autenticação inválida.");
   }
 
-  return value as AuthResponse;
+  return value as AuthenticatedUser;
+}
+
+function parseLoginResponse(value: unknown): LoginResponse {
+  if (!isRecord(value)) {
+    throw new Error("Resposta de autenticação inválida.");
+  }
+
+  const usuario = parseAuthenticatedUser(value.usuario);
+
+  if (value.aceiteTermosUsoPendente === true && typeof value.tokenAceite === "string" && value.tokenAceite.trim()) {
+    return { aceiteTermosUsoPendente: true, tokenAceite: value.tokenAceite, usuario };
+  }
+
+  if (typeof value.accessToken !== "string" || !value.accessToken.trim()) {
+    throw new Error("Resposta de autenticação inválida.");
+  }
+
+  return { accessToken: value.accessToken, usuario };
 }
 
 export async function login(payload: LoginRequest) {
@@ -139,7 +163,7 @@ export async function login(payload: LoginRequest) {
     method: "POST",
   });
 
-  return parseAuthResponse(response);
+  return parseLoginResponse(response);
 }
 
 export async function loginWithGoogle(payload: GoogleLoginRequest) {
@@ -148,7 +172,20 @@ export async function loginWithGoogle(payload: GoogleLoginRequest) {
     method: "POST",
   });
 
-  return parseAuthResponse(response);
+  return parseLoginResponse(response);
+}
+
+export async function acceptTermsOfUse(tokenAceite: string) {
+  const response = await apiRequest<unknown>("/mobile/aceites-documentos/termos-uso", {
+    method: "POST",
+    token: tokenAceite,
+  });
+
+  if (!isRecord(response) || typeof response.accessToken !== "string" || !response.accessToken.trim()) {
+    throw new Error("Resposta de aceite inválida.");
+  }
+
+  return { accessToken: response.accessToken } satisfies TermsAcceptanceResponse;
 }
 
 export function changeTemporaryPassword(payload: ChangeTemporaryPasswordRequest) {
