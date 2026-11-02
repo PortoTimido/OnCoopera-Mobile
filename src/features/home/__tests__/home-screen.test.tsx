@@ -53,7 +53,7 @@ describe("home screen", () => {
     await render(<HomeScreen />);
 
     expect(screen.getByTestId("home-screen")).toBeTruthy();
-    expect(screen.getByText("In\u00edcio")).toBeTruthy();
+    expect(screen.getAllByText("In\u00edcio")).toHaveLength(2);
     expect(screen.getByText("QUINTA, 3 DE SETEMBRO")).toBeTruthy();
     expect(screen.getByText("Boa tarde")).toBeTruthy();
     expect(screen.getByText("\ud83c\udf24\ufe0f")).toBeTruthy();
