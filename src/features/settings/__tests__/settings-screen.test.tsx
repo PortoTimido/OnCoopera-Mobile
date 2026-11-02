@@ -3,6 +3,11 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react-nativ
 import { SettingsScreen } from "@/features/settings/screens/SettingsScreen";
 import type { AuthResponse } from "@/lib/api/auth";
 import { getMemorySession, setMemorySession } from "@/lib/auth/session";
+import { signOutGoogle } from "@/lib/auth/google-sign-in";
+
+jest.mock("@/lib/auth/google-sign-in", () => ({
+  signOutGoogle: jest.fn(async () => undefined),
+}));
 
 const mockRouterReplace = jest.fn();
 
@@ -27,6 +32,8 @@ const session: AuthResponse = {
     ultimoAcesso: null,
   },
 };
+
+const mockedSignOutGoogle = jest.mocked(signOutGoogle);
 
 function mockResponse(status: number, body?: unknown) {
   return Promise.resolve({
@@ -118,5 +125,16 @@ describe("settings screen", () => {
       novaSenha: "SenhaNova!12345",
       senhaAtual: "SenhaAtual!123",
     });
+  });
+
+  it("clears the Google and OnCoopera sessions on logout", async () => {
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce(await mockResponse(204));
+
+    await render(<SettingsScreen />);
+    await fireEvent.press(screen.getByTestId("settings-logout"));
+
+    await waitFor(() => expect(getMemorySession()).toBeNull());
+    expect(mockedSignOutGoogle).toHaveBeenCalledTimes(1);
+    expect(mockRouterReplace).toHaveBeenCalledWith("/login");
   });
 });

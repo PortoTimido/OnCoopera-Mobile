@@ -2,6 +2,7 @@ import {
   changePassword,
   changeTemporaryPassword,
   login,
+  loginWithGoogle,
   requestPatientPasswordRecovery,
   resetPatientPasswordWithRecoveryToken,
   updatePatientProfile,
@@ -65,6 +66,54 @@ describe("auth api", () => {
     await expect(login({ identificador: "paciente", senha: "errada" })).rejects.toMatchObject({
       message: "Falha de autenticacao.",
       status,
+    } satisfies Partial<ApiError>);
+  });
+
+  it("exchanges a Google ID Token for an OnCoopera session", async () => {
+    const payload = {
+      accessToken: "oncoopera-token",
+      usuario: {
+        dataNascimento: "1990-01-01",
+        email: "paciente@oncoopera.com",
+        id: "user-id",
+        login: "paciente",
+        nome: "Paciente",
+        perfisAdministrativos: [],
+        status: "ATIVO",
+        telefone: "11999999999",
+        tipo: "PACIENTE",
+        trocaSenhaObrigatoria: false,
+        ultimoAcesso: null,
+      },
+    };
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce(await mockResponse(200, payload));
+
+    await expect(loginWithGoogle({ idToken: "google-id-token" })).resolves.toEqual(payload);
+
+    const [url, options] = (globalThis.fetch as jest.Mock).mock.calls[0];
+    expect(url).toBe("http://localhost:3000/api/auth/google");
+    expect(options.method).toBe("POST");
+    expect(options.credentials).toBe("include");
+    expect(JSON.parse(options.body)).toEqual({ idToken: "google-id-token" });
+  });
+
+  it("rejects an invalid Google authentication response", async () => {
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce(
+      await mockResponse(200, { accessToken: "", usuario: null }),
+    );
+
+    await expect(loginWithGoogle({ idToken: "google-id-token" })).rejects.toThrow(
+      "Resposta de autenticação inválida.",
+    );
+  });
+
+  it("surfaces Google backend communication failures", async () => {
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce(
+      await mockResponse(503, { message: "Serviço indisponível." }),
+    );
+
+    await expect(loginWithGoogle({ idToken: "google-id-token" })).rejects.toMatchObject({
+      status: 503,
     } satisfies Partial<ApiError>);
   });
 

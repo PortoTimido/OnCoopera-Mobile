@@ -1,6 +1,6 @@
-import { Mail, ShieldCheck } from "lucide-react-native";
+import { Mail } from "lucide-react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useRef, useState } from "react";
 import { Pressable, Switch, Text, View } from "react-native-css/components";
 
 import { FormMessage } from "@/components/ui";
@@ -20,15 +20,57 @@ import {
   validateLogin,
 } from "@/features/auth/validation";
 import { getSubmitErrorMessage } from "@/features/auth/screens/screen-helpers";
-import { login } from "@/lib/api/auth";
+import { login, loginWithGoogle } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 import { saveAuthSession } from "@/lib/auth/session";
+import {
+  getGoogleIdToken,
+  GoogleSignInError,
+  isGoogleSignInAvailable,
+} from "@/lib/auth/google-sign-in";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
 const initialValues: LoginFormValues = {
   identificador: "",
   senha: "",
 };
+
+function getGoogleErrorMessage(error: unknown) {
+  if (error instanceof GoogleSignInError) {
+    if (error.reason === "configuration") {
+      return "O login com Google não está configurado neste ambiente.";
+    }
+
+    if (error.reason === "play-services-unavailable") {
+      return "Atualize o Google Play Services para continuar com o Google.";
+    }
+
+    if (error.reason === "missing-id-token") {
+      return "Não foi possível validar sua conta Google. Tente novamente.";
+    }
+
+    return "Não foi possível entrar com o Google agora.";
+  }
+
+  if (error instanceof ApiError) {
+    if (error.status === 0) {
+      return error.message;
+    }
+
+    if (
+      error.status === 409 &&
+      error.body?.error === "GOOGLE_ACCOUNT_NOT_REGISTERED"
+    ) {
+      return "Nenhum cadastro foi encontrado para esta conta Google. Crie seu cadastro antes de continuar.";
+    }
+
+    if (error.status === 401) {
+      return "Não foi possível validar sua conta Google. Tente novamente.";
+    }
+  }
+
+  return "Não foi possível entrar com o Google agora.";
+}
 
 export function LoginScreen() {
   const router = useRouter();
@@ -37,7 +79,9 @@ export function LoginScreen() {
   const [errors, setErrors] = useState<FieldErrors<LoginFormValues>>({});
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const actionInFlight = useRef<"google" | "password" | null>(null);
   const [success, setSuccess] = useState<string | null>(() => {
     if (params.temporaryPasswordChanged) {
       return "Senha definitiva criada. Entre com sua nova senha.";
@@ -50,7 +94,7 @@ export function LoginScreen() {
     return null;
   });
 
-  const disabledOAuthText = useMemo(() => "Google Sign-In pendente de contrato OAuth.", []);
+  const googleAvailable = isGoogleSignInAvailable();
 
   function updateField(field: keyof LoginFormValues, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -58,6 +102,10 @@ export function LoginScreen() {
   }
 
   async function handleSubmit() {
+    if (actionInFlight.current) {
+      return;
+    }
+
     const nextErrors = validateLogin(values);
     setErrors(nextErrors);
     setMessage(null);
@@ -67,6 +115,7 @@ export function LoginScreen() {
       return;
     }
 
+    actionInFlight.current = "password";
     setLoading(true);
 
     try {
@@ -88,7 +137,36 @@ export function LoginScreen() {
 
       setMessage(getSubmitErrorMessage(error, "Não foi possível entrar agora."));
     } finally {
+      actionInFlight.current = null;
       setLoading(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    if (actionInFlight.current || !googleAvailable) {
+      return;
+    }
+
+    actionInFlight.current = "google";
+    setGoogleLoading(true);
+    setMessage(null);
+    setSuccess(null);
+
+    try {
+      const googleResult = await getGoogleIdToken();
+
+      if (googleResult.type === "cancelled") {
+        return;
+      }
+
+      const session = await loginWithGoogle({ idToken: googleResult.idToken });
+      await saveAuthSession(session, remember);
+      router.replace({ pathname: "/inicio", params: { medicalGuidance: "1" } });
+    } catch (error) {
+      setMessage(getGoogleErrorMessage(error));
+    } finally {
+      actionInFlight.current = null;
+      setGoogleLoading(false);
     }
   }
 
@@ -141,12 +219,20 @@ export function LoginScreen() {
           <AuthLink href="/esqueci-senha" label="Esqueci a senha" />
         </View>
 
-        <AuthButton loading={loading} onPress={handleSubmit} testID="login-submit" title="Entrar" />
+        <AuthButton
+          disabled={googleLoading}
+          loading={loading}
+          onPress={handleSubmit}
+          testID="login-submit"
+          title="Entrar"
+        />
 
         <AuthButton
-          disabled
-          icon={<ShieldCheck color={nativePropColors.authMuted} size={18} strokeWidth={2} />}
-          title={disabledOAuthText}
+          disabled={loading || !googleAvailable}
+          loading={googleLoading}
+          onPress={() => void handleGoogleSignIn()}
+          testID="login-google"
+          title="Continuar com Google"
           variant="secondary"
         />
 

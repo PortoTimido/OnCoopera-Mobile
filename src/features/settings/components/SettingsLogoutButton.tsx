@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, Text } from "react-native-css/components"
 
 import { logout } from "@/lib/api/auth";
 import { clearAuthSession } from "@/lib/auth/session";
+import { signOutGoogle } from "@/lib/auth/google-sign-in";
 import { nativePropColors } from "@/lib/design/native-prop-colors";
 
 export function SettingsLogoutButton() {
@@ -19,6 +20,7 @@ export function SettingsLogoutButton() {
     } catch {
       // A sessao local e encerrada mesmo que a chamada ao backend falhe.
     } finally {
+      await signOutGoogle();
       await clearAuthSession();
       router.replace("/login");
     }

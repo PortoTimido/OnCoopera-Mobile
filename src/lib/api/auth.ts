@@ -29,6 +29,10 @@ export type LoginRequest = {
   senha: string;
 };
 
+export type GoogleLoginRequest = {
+  idToken: string;
+};
+
 export type ChangeTemporaryPasswordRequest = {
   identificador: string;
   novaSenha: string;
@@ -98,11 +102,53 @@ export type PasswordRecoveryResetRequest = {
   resetToken: string;
 };
 
-export function login(payload: LoginRequest) {
-  return apiRequest<AuthResponse>("/auth/login", {
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function parseAuthResponse(value: unknown): AuthResponse {
+  if (!isRecord(value) || typeof value.accessToken !== "string" || !value.accessToken.trim()) {
+    throw new Error("Resposta de autenticação inválida.");
+  }
+
+  const user = value.usuario;
+
+  if (
+    !isRecord(user) ||
+    typeof user.dataNascimento !== "string" ||
+    typeof user.email !== "string" ||
+    typeof user.id !== "string" ||
+    typeof user.login !== "string" ||
+    typeof user.nome !== "string" ||
+    !Array.isArray(user.perfisAdministrativos) ||
+    typeof user.status !== "string" ||
+    typeof user.telefone !== "string" ||
+    typeof user.tipo !== "string" ||
+    typeof user.trocaSenhaObrigatoria !== "boolean" ||
+    !(typeof user.ultimoAcesso === "string" || user.ultimoAcesso === null)
+  ) {
+    throw new Error("Resposta de autenticação inválida.");
+  }
+
+  return value as AuthResponse;
+}
+
+export async function login(payload: LoginRequest) {
+  const response = await apiRequest<unknown>("/auth/login", {
     body: payload,
     method: "POST",
   });
+
+  return parseAuthResponse(response);
+}
+
+export async function loginWithGoogle(payload: GoogleLoginRequest) {
+  const response = await apiRequest<unknown>("/auth/google", {
+    body: payload,
+    method: "POST",
+  });
+
+  return parseAuthResponse(response);
 }
 
 export function changeTemporaryPassword(payload: ChangeTemporaryPasswordRequest) {

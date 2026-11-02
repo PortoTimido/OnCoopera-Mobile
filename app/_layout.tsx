@@ -9,11 +9,18 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useOnCooperaFonts } from "@/lib/fonts";
+import { initializeGoogleSignIn } from "@/lib/auth/google-sign-in";
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 export default function RootLayout() {
   const { error, retry, status } = useOnCooperaFonts();
+
+  useEffect(() => {
+    initializeGoogleSignIn().catch(() => {
+      // A tela de login apresentará uma mensagem segura se a configuração estiver inválida.
+    });
+  }, []);
 
   useEffect(() => {
     if (status !== "loading") {
