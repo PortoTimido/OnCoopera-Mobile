@@ -151,7 +151,11 @@ export function SettingsScreen() {
             onRemoveAvatarPress={handleRemoveAvatarPress}
           />
           <SettingsNotificationsCard />
-          <SettingsSecurityCard onChangePasswordPress={() => setChangePasswordVisible(true)} />
+          <SettingsSecurityCard
+            onChangePasswordPress={() => setChangePasswordVisible(true)}
+            onPrivacyPolicyPress={() => router.push("/documentos-legais/POLITICA_PRIVACIDADE")}
+            onTermsOfUsePress={() => router.push("/documentos-legais/TERMOS_USO")}
+          />
           <SettingsLogoutButton />
         </ScrollView>
 

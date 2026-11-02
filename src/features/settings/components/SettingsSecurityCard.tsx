@@ -13,14 +13,16 @@ type IconComponent = ComponentType<{
 
 type SettingsSecurityCardProps = {
   onChangePasswordPress: () => void;
+  onPrivacyPolicyPress: () => void;
+  onTermsOfUsePress: () => void;
 };
 
-export function SettingsSecurityCard({ onChangePasswordPress }: SettingsSecurityCardProps) {
+export function SettingsSecurityCard({ onChangePasswordPress, onPrivacyPolicyPress, onTermsOfUsePress }: SettingsSecurityCardProps) {
   const securityItems: Array<{ icon: IconComponent; id: string; label: string; onPress?: () => void }> = [
     { icon: Lock, id: "alterar-senha", label: "Alterar senha", onPress: onChangePasswordPress },
     { icon: ShieldCheck, id: "privacidade-dados", label: "Privacidade de dados" },
-    { icon: FileText, id: "termos-uso", label: "Termos de uso" },
-    { icon: Info, id: "politica-privacidade", label: "Politica de privacidade" },
+    { icon: FileText, id: "termos-uso", label: "Termos de uso", onPress: onTermsOfUsePress },
+    { icon: Info, id: "politica-privacidade", label: "Politica de privacidade", onPress: onPrivacyPolicyPress },
   ];
 
   return (

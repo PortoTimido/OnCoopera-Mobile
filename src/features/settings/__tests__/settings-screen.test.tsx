@@ -10,10 +10,11 @@ jest.mock("@/lib/auth/google-sign-in", () => ({
 }));
 
 const mockRouterReplace = jest.fn();
+const mockRouterPush = jest.fn();
 
 jest.mock("expo-router", () => ({
   ...jest.requireActual("expo-router"),
-  useRouter: () => ({ replace: mockRouterReplace }),
+  useRouter: () => ({ push: mockRouterPush, replace: mockRouterReplace }),
 }));
 
 const session: AuthResponse = {
@@ -49,6 +50,7 @@ describe("settings screen", () => {
     process.env.EXPO_PUBLIC_API_URL = "http://localhost:3000/api";
     globalThis.fetch = jest.fn();
     mockRouterReplace.mockClear();
+    mockRouterPush.mockClear();
   });
 
   afterEach(() => {
@@ -76,6 +78,17 @@ describe("settings screen", () => {
     expect(screen.getByTestId("settings-edit-profile").props.accessibilityState?.disabled).toBeFalsy();
     expect(screen.getByTestId("settings-alterar-senha").props.accessibilityState?.disabled).toBeFalsy();
     expect(screen.getByTestId("settings-privacidade-dados").props.accessibilityState?.disabled).toBe(true);
+    expect(screen.getByTestId("settings-termos-uso").props.accessibilityState?.disabled).toBe(false);
+    expect(screen.getByTestId("settings-politica-privacidade").props.accessibilityState?.disabled).toBe(false);
+  });
+
+  it("opens the legal document selected in settings", async () => {
+    await render(<SettingsScreen />);
+    await fireEvent.press(screen.getByTestId("settings-termos-uso"));
+    await fireEvent.press(screen.getByTestId("settings-politica-privacidade"));
+
+    expect(mockRouterPush).toHaveBeenNthCalledWith(1, "/documentos-legais/TERMOS_USO");
+    expect(mockRouterPush).toHaveBeenNthCalledWith(2, "/documentos-legais/POLITICA_PRIVACIDADE");
   });
 
   it("updates the patient's name through the edit name modal", async () => {
