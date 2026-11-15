@@ -8,5 +8,6 @@ export * from "./BirthDatePicker";
 export * from "./PasswordChecklist";
 export * from "./PasswordField";
 export * from "./RegisterStepIndicator";
+export * from "./RegisterLegalAcceptance";
 export * from "./RegisterStepOneForm";
 export * from "./RegisterStepTwoForm";

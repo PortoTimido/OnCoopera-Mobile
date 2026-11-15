@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { getSubmitErrorMessage } from "@/features/auth/screens/screen-helpers";
 import {
@@ -15,6 +15,7 @@ import { createPatient, login } from "@/lib/api/auth";
 import { getAddressByCep } from "@/lib/api/via-cep";
 import { saveAuthSession, savePendingTermsAcceptance } from "@/lib/auth/session";
 import { getPendingGeocodingCoordinates } from "@/lib/geocoding/geocode-address";
+import type { RegisterLegalAcceptanceState } from "@/features/auth/components/RegisterLegalAcceptance";
 
 export type RegisterStep = 1 | 2;
 
@@ -44,6 +45,12 @@ export function useRegister() {
   const [cepLookupMessage, setCepLookupMessage] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [legalAcceptance, setLegalAcceptance] = useState<RegisterLegalAcceptanceState>({
+    acceptedTerms: false,
+    hasLoadError: false,
+    hasTerms: false,
+    loading: true,
+  });
 
   function updateField(field: keyof RegisterFormValues, value: string) {
     const nextValue =
@@ -147,11 +154,25 @@ export function useRegister() {
     setStep(1);
   }
 
+  const updateLegalAcceptance = useCallback((state: RegisterLegalAcceptanceState) => {
+    setLegalAcceptance(state);
+  }, []);
+
   async function handleSubmit() {
     const stepOneErrors = validateRegisterStepOne(values);
     const stepTwoErrors = validateRegisterStepTwo(values);
     setMessage(null);
     setSuccess(null);
+
+    if (legalAcceptance.loading || legalAcceptance.hasLoadError) {
+      setMessage("Aguarde o carregamento dos documentos legais ou tente novamente.");
+      return;
+    }
+
+    if (legalAcceptance.hasTerms && !legalAcceptance.acceptedTerms) {
+      setMessage("Leia os Termos de Uso até o fim e registre seu aceite para continuar.");
+      return;
+    }
 
     if (hasFieldErrors(stepOneErrors)) {
       setErrors(stepOneErrors);
@@ -187,6 +208,7 @@ export function useRegister() {
         login: buildPatientLogin(values.nome),
         nome: values.nome.trim(),
         senha: values.senha,
+        ...(legalAcceptance.hasTerms ? { termosUsoAceito: true as const } : {}),
         telefone: normalizeDigits(values.telefone),
       });
 
@@ -225,6 +247,8 @@ export function useRegister() {
     step,
     success,
     updateField,
+    updateLegalAcceptance,
+    legalAcceptance,
     values,
   };
 }

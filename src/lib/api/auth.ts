@@ -70,6 +70,7 @@ export type CreatePatientRequest = {
   login: string;
   nome: string;
   senha: string;
+  termosUsoAceito?: true;
   telefone: string;
 };
 

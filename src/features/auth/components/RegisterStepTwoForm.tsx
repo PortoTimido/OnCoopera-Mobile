@@ -4,6 +4,7 @@ import { View } from "react-native-css/components";
 import { AuthButton } from "@/features/auth/components/AuthButton";
 import { AuthLink } from "@/features/auth/components/AuthLink";
 import { AuthTextField } from "@/features/auth/components/AuthTextField";
+import { RegisterLegalAcceptance } from "@/features/auth/components/RegisterLegalAcceptance";
 import type { useRegister } from "@/features/auth/hooks/use-register";
 import { formatCepBR } from "@/features/auth/masks";
 
@@ -15,7 +16,9 @@ type RegisterStepTwoFormProps = Pick<
   | "goToPreviousStep"
   | "handleSubmit"
   | "loading"
+  | "legalAcceptance"
   | "updateField"
+  | "updateLegalAcceptance"
   | "values"
 >;
 
@@ -26,7 +29,9 @@ export function RegisterStepTwoForm({
   goToPreviousStep,
   handleSubmit,
   loading,
+  legalAcceptance,
   updateField,
+  updateLegalAcceptance,
   values,
 }: RegisterStepTwoFormProps) {
   return (
@@ -101,7 +106,15 @@ export function RegisterStepTwoForm({
         />
       </View>
 
-      <AuthButton loading={loading} onPress={handleSubmit} testID="cadastro-submit" title="Criar conta" />
+      <RegisterLegalAcceptance onStateChange={updateLegalAcceptance} />
+
+      <AuthButton
+        disabled={legalAcceptance.loading || legalAcceptance.hasLoadError || (legalAcceptance.hasTerms && !legalAcceptance.acceptedTerms)}
+        loading={loading}
+        onPress={handleSubmit}
+        testID="cadastro-submit"
+        title="Criar conta"
+      />
       <AuthButton onPress={goToPreviousStep} title="Voltar" variant="secondary" />
 
       <View className="items-center">

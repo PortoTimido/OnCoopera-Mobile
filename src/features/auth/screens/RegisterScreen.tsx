@@ -35,7 +35,9 @@ export function RegisterScreen() {
             errors={register.errors}
             goToPreviousStep={register.goToPreviousStep}
             handleSubmit={register.handleSubmit}
+            legalAcceptance={register.legalAcceptance}
             loading={register.loading}
+            updateLegalAcceptance={register.updateLegalAcceptance}
             updateField={register.updateField}
             values={register.values}
           />
