@@ -2,6 +2,7 @@ import {
   changePassword,
   changeTemporaryPassword,
   acceptTermsOfUse,
+  createPatient,
   login,
   loginWithGoogle,
   requestPatientPasswordRecovery,
@@ -93,6 +94,30 @@ describe("auth api", () => {
     expect(url).toBe("http://localhost:3000/api/mobile/aceites-documentos/termos-uso");
     expect(options.method).toBe("POST");
     expect((options.headers as Headers).get("Authorization")).toBe("Bearer restricted-token");
+  });
+
+  it("sends the accepted terms flag when creating a patient", async () => {
+    (globalThis.fetch as jest.Mock).mockResolvedValueOnce(await mockResponse(201, {}));
+    const payload = {
+      dataNascimento: "1990-01-01",
+      email: "paciente@oncoopera.com",
+      endereco: {
+        bairro: "Sé", cep: "01001000", cidade: "São Paulo", estado: "SP", latitude: -23.5,
+        logradouro: "Praça da Sé", longitude: -46.6, numero: "1",
+      },
+      login: "paciente.oncoopera",
+      nome: "Paciente OnCoopera",
+      senha: "SenhaForte123!",
+      telefone: "11999999999",
+      termosUsoAceito: true as const,
+    };
+
+    await createPatient(payload);
+
+    const [url, options] = (globalThis.fetch as jest.Mock).mock.calls[0];
+    expect(url).toBe("http://localhost:3000/api/mobile/pacientes");
+    expect(options.method).toBe("POST");
+    expect(JSON.parse(options.body)).toEqual(payload);
   });
 
   it("exchanges a Google ID Token for an OnCoopera session", async () => {

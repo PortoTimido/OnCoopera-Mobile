@@ -3,6 +3,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react-nativ
 import { RegisterScreen } from "@/features/auth/screens/RegisterScreen";
 import type { AuthResponse } from "@/lib/api/auth";
 import { createPatient, login } from "@/lib/api/auth";
+import { ApiError } from "@/lib/api/client";
+import { getLegalDocument } from "@/lib/api/documentos-legais";
 import { getAddressByCep } from "@/lib/api/via-cep";
 import { saveAuthSession } from "@/lib/auth/session";
 
@@ -17,6 +19,10 @@ jest.mock("@/lib/api/auth", () => {
 
 jest.mock("@/lib/api/via-cep", () => ({
   getAddressByCep: jest.fn(),
+}));
+
+jest.mock("@/lib/api/documentos-legais", () => ({
+  getLegalDocument: jest.fn(),
 }));
 
 jest.mock("@/lib/auth/session", () => ({
@@ -34,6 +40,7 @@ const mockedCreatePatient = jest.mocked(createPatient);
 const mockedLogin = jest.mocked(login);
 const mockedGetAddressByCep = jest.mocked(getAddressByCep);
 const mockedSaveAuthSession = jest.mocked(saveAuthSession);
+const mockedGetLegalDocument = jest.mocked(getLegalDocument);
 
 const session: AuthResponse = {
   accessToken: "token",
@@ -84,6 +91,7 @@ describe("register screen", () => {
       logradouro: "Praca da Se",
       uf: "SP",
     });
+    mockedGetLegalDocument.mockRejectedValue(new ApiError(404, "Documento não encontrado."));
   });
 
   it("logs the user in automatically after a successful registration", async () => {
@@ -94,6 +102,8 @@ describe("register screen", () => {
 
     await fillStepOne();
     await fillStepTwo();
+
+    await waitFor(() => expect(screen.getByTestId("cadastro-submit").props.accessibilityState.disabled).toBe(false));
 
     await fireEvent.press(screen.getByTestId("cadastro-submit"));
 
@@ -116,10 +126,40 @@ describe("register screen", () => {
     await fillStepOne();
     await fillStepTwo();
 
+    await waitFor(() => expect(screen.getByTestId("cadastro-submit").props.accessibilityState.disabled).toBe(false));
+
     await fireEvent.press(screen.getByTestId("cadastro-submit"));
 
     await waitFor(() => expect(mockedLogin).toHaveBeenCalled());
     expect(mockReplace).not.toHaveBeenCalled();
     expect(await screen.findByText("Cadastro enviado com sucesso. Entre com seu e-mail e senha.")).toBeTruthy();
+  });
+
+  it("requires a full reading of the available terms and sends the backend acceptance field", async () => {
+    mockedGetLegalDocument.mockImplementation(async (type) => ({
+      atualizadoEm: "2026-11-02T00:00:00.000Z",
+      conteudo: `<p>${type}</p>`,
+      id: `${type}-id`,
+      tipo: type,
+      versao: "1.0",
+    }));
+    mockedCreatePatient.mockResolvedValue(session.usuario);
+    mockedLogin.mockResolvedValue(session);
+
+    await render(<RegisterScreen />);
+    await fillStepOne();
+    await fillStepTwo();
+
+    await waitFor(() => expect(screen.getByTestId("cadastro-termos-checkbox").props.accessibilityState.disabled).toBe(true));
+    await fireEvent.press(screen.getByText("Termos de Uso"));
+    await fireEvent.scroll(screen.getByTestId("cadastro-documento-scroll"), {
+      nativeEvent: { contentOffset: { y: 100 }, contentSize: { height: 200 }, layoutMeasurement: { height: 100 } },
+    });
+    await fireEvent.press(screen.getByLabelText("Fechar documento"));
+    await waitFor(() => expect(screen.getByTestId("cadastro-termos-checkbox").props.accessibilityState.disabled).toBe(false));
+    await fireEvent.press(screen.getByTestId("cadastro-termos-checkbox"));
+    await fireEvent.press(screen.getByTestId("cadastro-submit"));
+
+    await waitFor(() => expect(mockedCreatePatient).toHaveBeenCalledWith(expect.objectContaining({ termosUsoAceito: true })));
   });
 });
