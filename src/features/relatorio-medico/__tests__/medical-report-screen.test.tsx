@@ -35,6 +35,7 @@ describe("medical report screen", () => {
   let platformReplacement: ReturnType<typeof jest.replaceProperty>;
 
   beforeEach(() => {
+    jest.useFakeTimers({ now: new Date("2026-10-27T12:00:00.000Z") });
     platformReplacement = jest.replaceProperty(Platform, "OS", "android");
     setMemorySession({
       accessToken: "token",
@@ -56,6 +57,7 @@ describe("medical report screen", () => {
 
   afterEach(() => {
     platformReplacement.restore();
+    jest.useRealTimers();
     setMemorySession(null);
     jest.clearAllMocks();
   });

@@ -14,6 +14,30 @@ describe("medical report formatters", () => {
     expect(filterRecordsForPeriod(records, 7, new Date(2026, 9, 13))).toHaveLength(2);
   });
 
+  it("includes both calendar boundaries for every report period", () => {
+    const referenceDate = new Date("2026-10-27T12:00:00.000Z");
+    const boundaryRecords: RegistroDiario[] = [
+      { ...records[0], dataRegistro: "2026-10-27", id: "end" },
+      { ...records[0], dataRegistro: "2026-10-21", id: "seven-day-start" },
+      { ...records[0], dataRegistro: "2026-10-20", id: "before-seven-day-start" },
+      { ...records[0], dataRegistro: "2026-10-13", id: "fifteen-day-start" },
+      { ...records[0], dataRegistro: "2026-10-12", id: "before-fifteen-day-start" },
+      { ...records[0], dataRegistro: "2026-09-28", id: "thirty-day-start" },
+      { ...records[0], dataRegistro: "2026-09-27", id: "before-thirty-day-start" },
+    ];
+
+    expect(filterRecordsForPeriod(boundaryRecords, 7, referenceDate).map(({ id }) => id)).toEqual(["end", "seven-day-start"]);
+    expect(filterRecordsForPeriod(boundaryRecords, 15, referenceDate).map(({ id }) => id)).toEqual(["end", "seven-day-start", "before-seven-day-start", "fifteen-day-start"]);
+    expect(filterRecordsForPeriod(boundaryRecords, 30, referenceDate).map(({ id }) => id)).toEqual([
+      "end",
+      "seven-day-start",
+      "before-seven-day-start",
+      "fifteen-day-start",
+      "before-fifteen-day-start",
+      "thirty-day-start",
+    ]);
+  });
+
   it("uses timestamp dates and falls back to dataHora for older records", () => {
     const mixedRecords: RegistroDiario[] = [
       { ...records[0], dataRegistro: "2026-10-13T00:00:00.000Z" },
